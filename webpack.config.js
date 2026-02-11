@@ -25,7 +25,7 @@ const rootDir = path.resolve(__dirname);
 const userConfigFilename = './plugin.config.json';
 const userConfigPath = path.resolve(rootDir, userConfigFilename);
 const distDir = path.resolve(rootDir, 'dist');
-const srcDir = path.resolve(rootDir, 'src');
+const srcRootDir = path.resolve(rootDir, 'src');
 const publishDir = path.resolve(rootDir, 'publish');
 
 const userConfig = {
@@ -33,7 +33,7 @@ const userConfig = {
 	...(fs.pathExistsSync(userConfigPath) ? require(userConfigFilename) : {}),
 };
 
-const manifestPath = `${srcDir}/manifest.json`;
+const manifestPath = `${srcRootDir}/manifest.json`;
 const packageJsonPath = `${rootDir}/package.json`;
 const allPossibleScreenshotsType = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
 const manifest = readManifest(manifestPath);
@@ -188,7 +188,7 @@ const baseConfig = {
 	...userConfig.webpackOverrides,
 };
 
-const pluginConfig = { ...baseConfig, entry: './src/index.ts',
+const pluginConfig = { ...baseConfig, entry: './src/plugin/index.ts',
 	resolve: {
 		alias: {
 			api: path.resolve(__dirname, 'api'),
