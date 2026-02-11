@@ -173,7 +173,7 @@ function onBuildCompleted() {
 }
 
 const baseConfig = {
-  mode: 'production',
+	mode: process.env.NODE_ENV === 'development' ? 'development' : 'production',
   target: 'node',
   stats: 'errors-only',
   module: {
@@ -187,6 +187,10 @@ const baseConfig = {
             onlyCompileBundledFiles: true,
           },
         },
+      },
+      {
+        test: /\.html$/,
+        use: 'raw-loader',
         exclude: /node_modules/,
       },
     ],
@@ -221,6 +225,7 @@ const pluginConfig = { ...baseConfig, entry: './src/plugin/index.ts',
               // already copied into /dist so we don't copy them.
               '**/*.ts',
               '**/*.tsx',
+              '**/*.html',
             ],
           },
         },
