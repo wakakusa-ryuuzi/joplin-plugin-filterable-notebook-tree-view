@@ -1,19 +1,19 @@
 {
-	"compilerOptions": {
+  "compilerOptions": {
     "composite": true,
 
-		"module": "commonjs",
-		"target": "es2015",
-		"allowJs": true,
-		"esModuleInterop": true,
+    "module": "commonjs",
+    "target": "es2015",
+    "allowJs": true,
+    "esModuleInterop": true,
 
     "baseUrl": ".",
-		"paths": {
-			"api": ["api"]
-		},
-		"outDir": "./dist/",
-	},
+    "paths": {
+      "api": ["api"]
+    },
+    "outDir": "./dist/",
+  },
   "include": [
     "src/plugin/**/*.ts", "src/plugin/**/*.d.ts"
-	]
+  ]
 }

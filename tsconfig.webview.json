@@ -1,15 +1,15 @@
 {
-	"compilerOptions": {
+  "compilerOptions": {
     "composite": true,
 
     "module": "esnext",
-		"target": "es2015",
+    "target": "es2015",
     "resolveJsonModule": true,
-		"esModuleInterop": true,
+    "esModuleInterop": true,
 
-		"baseUrl": "src/webview",
-		"outDir": "./dist-webview/",
-	},
+    "baseUrl": "src/webview",
+    "outDir": "./dist-webview/",
+  },
   "include": [
     "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue"
   ]
