@@ -180,7 +180,13 @@ const baseConfig = {
 		rules: [
 			{
 				test: /\.tsx?$/,
-				use: 'ts-loader',
+				use: {
+					loader: 'ts-loader',
+					options: {
+						configFile: 'tsconfig.plugin.json',
+						onlyCompileBundledFiles: true,
+					},
+				},
 				exclude: /node_modules/,
 			},
 		],
@@ -207,7 +213,7 @@ const pluginConfig = { ...baseConfig, entry: './src/plugin/index.ts',
 			patterns: [
 				{
 					from: '**/*',
-					context: path.resolve(__dirname, 'src'),
+					context: path.resolve(__dirname, 'src', 'plugin'),
 					to: path.resolve(__dirname, 'dist'),
 					globOptions: {
 						ignore: [
@@ -217,6 +223,11 @@ const pluginConfig = { ...baseConfig, entry: './src/plugin/index.ts',
 							'**/*.tsx',
 						],
 					},
+				},
+				{
+					from: 'manifest.json',
+					context: path.resolve(__dirname, 'src'),
+					to: path.resolve(__dirname, 'dist'),
 				},
 			],
 		}),

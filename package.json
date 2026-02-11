@@ -1,7 +1,15 @@
 {
   "name": "joplin-plugin-filterablefoldertreeview",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "scripts": {
+    "dev": "npm run dev:all",
+    "dev:webview": "vite",
+    "dev:plugin": "cross-env NODE_ENV=development webpack --watch --env joplin-plugin-config=buildMain",
+    "dev:all": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",
+    "build": "npm run build:all",
+    "build:webview": "vue-tsc --noEmit && vite build",
+    "build:plugin": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain",
+    "build:all": "npm run build:plugin && npm run build:webview",
     "packaging": "webpack --env joplin-plugin-config=buildMain && webpack --env joplin-plugin-config=buildExtraScripts && webpack --env joplin-plugin-config=createArchive",
     "updateVersion": "webpack --env joplin-plugin-config=updateVersion",
     "update": "npm install -g generator-joplin && yo joplin --node-package-manager npm --update --force"
@@ -15,14 +23,22 @@
   ],
   "devDependencies": {
     "@types/node": "^18.7.13",
+    "@vitejs/plugin-vue": "^5.0.0",
     "chalk": "^4.1.0",
+    "concurrently": "^9.2.1",
     "copy-webpack-plugin": "^11.0.0",
+    "cross-env": "^10.1.0",
     "fs-extra": "^10.1.0",
     "glob": "^8.0.3",
     "tar": "^6.1.11",
     "ts-loader": "^9.3.1",
     "typescript": "^4.8.2",
+    "vite": "^5.0.0",
+    "vue-tsc": "^2.0.0",
     "webpack": "^5.74.0",
     "webpack-cli": "^4.10.0"
+  },
+  "dependencies": {
+    "vue": "^3.5.28"
   }
 }
