@@ -58,21 +58,48 @@
 
   function filterAndDisplayFolders(filterText) {
     if (filterText) {
-      filteredFolders.value = allFolders.value.filter(folder =>
-        folder.title.toLowerCase().includes(filterText)
+      const lowered = filterText.toLowerCase();
+      const childrenByParent = new Map();
+      for (const folder of allFolders.value) {
+        if (!childrenByParent.has(folder.parent_id)) {
+          childrenByParent.set(folder.parent_id, []);
+        }
+        childrenByParent.get(folder.parent_id).push(folder);
+      }
+
+      const matchedIds = new Set(
+        allFolders.value
+          .filter(folder => folder.title.toLowerCase().includes(lowered))
+          .map(folder => folder.id)
       );
+
+      const includeIds = new Set(matchedIds);
+      const queue = Array.from(matchedIds);
+      while (queue.length > 0) {
+        const parentId = queue.shift();
+        const children = childrenByParent.get(parentId) || [];
+        for (const child of children) {
+          if (!includeIds.has(child.id)) {
+            includeIds.add(child.id);
+            queue.push(child.id);
+          }
+        }
+      }
+
+      filteredFolders.value = allFolders.value.filter(folder => includeIds.has(folder.id));
     } else {
       filteredFolders.value = [...allFolders.value];
     }
     addDebugMessage(`表示フォルダ数: ${filteredFolders.value.length}`);
   };
 
-  function openSelectedFolder() {
-    if (selectedFolderId.value) {
-      addDebugMessage(`フォルダ選択: ${selectedFolderId.value}`);
+  function openSelectedFolder(folderId) {
+    const targetId = folderId || selectedFolderId.value;
+    if (targetId) {
+      addDebugMessage(`フォルダ選択: ${targetId}`);
       window.webviewApi.postMessage({
         type: 'selectFolder',
-        folderId: selectedFolderId.value,
+        folderId: targetId,
       });
     } else {
       addDebugMessage('エラー: フォルダが選択されていません');
@@ -93,29 +120,43 @@
 </script>
 
 <template>
-  <div class="h-screen pa-2 flex flex-col overflow-y-auto bg-red">
+  <div class="h-screen pa-2 flex flex-col overflow-y-auto">
     <!-- 絞り込みテキスト入力 -->
-    <input
-      v-model="filterText"
-      type="text"
-      placeholder="Notebook name"
-      @input="handleFilterChange"
-      class="w-full pa-2 mb-2 box-border border border-gray-300 rounded"
-    />
+    <div class="relative mb-2">
+      <input
+        v-model="filterText"
+        type="text"
+        placeholder="Notebook name"
+        @input="handleFilterChange"
+        class="w-full pa-2 pr-8 box-border border border-gray-300 rounded"
+      />
+      <button
+        v-if="filterText"
+        type="button"
+        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+        @click="filterText = ''; handleFilterChange();"
+        aria-label="Clear filter"
+      >
+        x
+      </button>
+    </div>
 
-    <!-- フォルダプルダウン -->
-    <select
-      v-model="selectedFolderId"
-      size="15"
-      class="w-full flex-1 pa-2 box-border border border-gray-300 rounded"
-    >
-      <option v-if="filteredFolders.length === 0" value="">
+    <!-- フォルダツリー (ボタン) -->
+    <div class="w-full flex-1 pa-2 box-border border border-gray-300 rounded overflow-y-auto">
+      <div v-if="filteredFolders.length === 0" class="pa-2 text-gray-500">
         {{ allFolders.length === 0 ? '読み込み中...' : '該当するフォルダがありません' }}
-      </option>
-      <option v-for="folder in filteredFolders" :key="folder.id" :value="folder.id">
-        {{ ' '.repeat(getIndentLevel(folder) * 2) }}📁 {{ folder.title }}
-      </option>
-    </select>
+      </div>
+      <button
+        v-for="folder in filteredFolders"
+        :key="folder.id"
+        type="button"
+        class="w-full text-left pa-2 rounded hover:bg-gray-100"
+        :style="{ paddingLeft: `${getIndentLevel(folder) * 16 + 8}px` }"
+        @click="openSelectedFolder(folder.id)"
+      >
+        📁 {{ folder.title }}
+      </button>
+    </div>
   </div>
 </template>
 
