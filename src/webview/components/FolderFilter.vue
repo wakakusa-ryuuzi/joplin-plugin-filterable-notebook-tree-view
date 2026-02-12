@@ -29,10 +29,11 @@
 
       const messagePayload = message.message || message;
       addDebugMessage(`メッセージ受信: ${messagePayload.type}`);
-      
+
       if (messagePayload.type === 'updateFolderList') {
         allFolders.value = messagePayload.folders || [];
         addDebugMessage(`フォルダ数: ${allFolders.value.length}`);
+        console.log('Received folders:', allFolders.value);
         handleFilterChange();
       }
     });
@@ -92,56 +93,21 @@
 </script>
 
 <template>
-  <div style="padding: 10px; font-family: sans-serif;">
-    <h3 style="margin-top: 0;">📁 フォルダフィルタ</h3>
-
-    <!-- デバッグメッセージ表示エリア -->
-    <div
-      id="debugMessages"
-      style="
-        background: #f0f0f0;
-        padding: 8px;
-        margin-bottom: 10px;
-        border-radius: 4px;
-        font-size: 11px;
-        max-height: 100px;
-        overflow-y: auto;
-        font-family: monospace;
-      "
-    >
-      <div v-for="(msg, index) in debugMessages" :key="index">
-        {{ msg }}
-      </div>
-    </div>
-
+  <div class="h-screen pa-2 flex flex-col overflow-y-auto bg-red">
     <!-- 絞り込みテキスト入力 -->
     <input
       v-model="filterText"
       type="text"
-      placeholder="フォルダ名で絞り込み..."
+      placeholder="Notebook name"
       @input="handleFilterChange"
-      style="
-        width: 100%;
-        padding: 8px;
-        margin-bottom: 10px;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-      "
+      class="w-full pa-2 mb-2 box-border border border-gray-300 rounded"
     />
 
     <!-- フォルダプルダウン -->
     <select
       v-model="selectedFolderId"
       size="15"
-      style="
-        width: 100%;
-        padding: 8px;
-        box-sizing: border-box;
-        border: 1px solid #ccc;
-        border-radius: 4px;
-        font-family: sans-serif;
-      "
+      class="w-full flex-1 pa-2 box-border border border-gray-300 rounded"
     >
       <option v-if="filteredFolders.length === 0" value="">
         {{ allFolders.length === 0 ? '読み込み中...' : '該当するフォルダがありません' }}
@@ -150,23 +116,6 @@
         {{ ' '.repeat(getIndentLevel(folder) * 2) }}📁 {{ folder.title }}
       </option>
     </select>
-
-    <button
-      @click="openSelectedFolder"
-      style="
-        margin-top: 10px;
-        padding: 8px 16px;
-        width: 100%;
-        background: #007acc;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-        font-size: 14px;
-      "
-    >
-      選択したフォルダを開く
-    </button>
   </div>
 </template>
 

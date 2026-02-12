@@ -1,11 +1,16 @@
 import { defineConfig } from 'vite';
-import vue from '@vitejs/plugin-vue';
+
 import path from 'path';
+
+import vue from '@vitejs/plugin-vue';
+
+import UnoCSS from 'unocss/vite'
+
 
 const rootDir = path.resolve(__dirname, 'src/webview');
 
 export default defineConfig({
-  plugins: [vue()],
+  plugins: [vue(), UnoCSS()],
   root: rootDir,
   build: {
     outDir: path.resolve(__dirname, 'dist-webview'),

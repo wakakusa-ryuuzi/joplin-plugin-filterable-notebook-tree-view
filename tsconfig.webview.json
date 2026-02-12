@@ -4,6 +4,7 @@
 
     "module": "esnext",
     "target": "es2015",
+    "moduleResolution": "bundler",
     "resolveJsonModule": true,
     "esModuleInterop": true,
 
@@ -11,6 +12,6 @@
     "outDir": "./dist-webview/",
   },
   "include": [
-    "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue"
-  ]
+    "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue", "api/**/*.d.ts" , "api/**/*.ts"
+, "uno.config.mts"  ]
 }
