@@ -133,11 +133,17 @@
       <button
         v-if="filterText"
         type="button"
-        class="i-mdi:window-close absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-800"
+        class="absolute right-2 top-1/2 -translate-y-1/2
+              w-5 h-5
+              grid place-items-center
+              rounded-full
+              bg-gray-200 text-gray-500
+              hover:bg-gray-300 hover:text-gray-700
+              active:scale-90
+              transition-all duration-150"
         @click="filterText = ''; handleFilterChange();"
-        aria-label="Clear filter"
       >
-        x
+        <span class="i-mdi:window-close text-sm"></span>
       </button>
     </div>
 
@@ -150,7 +156,7 @@
         v-for="folder in filteredFolders"
         :key="folder.id"
         type="button"
-        class="w-full text-left pa-2 rounded hover:bg-gray-100"
+        class="w-full text-left pa-1 rounded hover:bg-gray-100"
         :style="{ paddingLeft: `${getIndentLevel(folder) * 16 + 8}px` }"
         @click="openSelectedFolder(folder.id)"
       >
