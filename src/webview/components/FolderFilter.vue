@@ -133,7 +133,7 @@
       <button
         v-if="filterText"
         type="button"
-        class="absolute right-2 top-1/2 -translate-y-1/2 text-gray-500 hover:text-gray-700"
+        class="i-mdi:window-close absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-800"
         @click="filterText = ''; handleFilterChange();"
         aria-label="Clear filter"
       >
