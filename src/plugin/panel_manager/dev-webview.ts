@@ -1,6 +1,6 @@
 const VITE_DEV_SERVER = 'http://localhost:5173';
 
-const loadModule = (src) => new Promise((resolve, reject) => {
+const loadModule = (src: string) => new Promise<void>((resolve, reject) => {
   const script = document.createElement('script');
   script.type = 'module';
   script.src = src;
@@ -11,6 +11,7 @@ const loadModule = (src) => new Promise((resolve, reject) => {
 
 const bootstrap = async () => {
   try {
+    console.log('Loading Vite dev server modules...');
     await loadModule(`${VITE_DEV_SERVER}/@vite/client`);
     await loadModule(`${VITE_DEV_SERVER}/webview.ts`);
   } catch (error) {

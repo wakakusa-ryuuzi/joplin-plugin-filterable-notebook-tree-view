@@ -185,6 +185,10 @@ const baseConfig = {
           options: {
             configFile: 'tsconfig.plugin.json',
             onlyCompileBundledFiles: true,
+            compilerOptions: {
+              declaration: false,
+              composite: false,
+            },
           },
         },
       },
@@ -225,6 +229,7 @@ const pluginConfig = { ...baseConfig, entry: './src/plugin/index.ts',
               // already copied into /dist so we don't copy them.
               '**/*.ts',
               '**/*.tsx',
+              '**/*.d.ts',
               '**/*.html',
             ],
           },
@@ -304,11 +309,12 @@ function resolveExtraScriptPath(name) {
   const s = name.split('.');
   s.pop();
   const nameNoExt = s.join('.');
+  const outputBaseName = path.basename(nameNoExt);
 
   return {
     entry: relativePath,
     output: {
-      filename: `${nameNoExt}.js`,
+      filename: `${outputBaseName}.js`,
       path: distDir,
       library: 'default',
       libraryTarget: 'commonjs',

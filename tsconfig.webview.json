@@ -5,6 +5,7 @@
     "module": "esnext",
     "target": "es2015",
     "moduleResolution": "bundler",
+    "isolatedModules": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
 

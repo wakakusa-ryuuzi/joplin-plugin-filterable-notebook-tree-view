@@ -13,7 +13,7 @@ export default defineConfig({
   plugins: [vue(), UnoCSS()],
   root: rootDir,
   build: {
-    outDir: path.resolve(__dirname, 'dist-webview'),
+    outDir: path.resolve(__dirname, 'dist', 'webview'),
     emptyOutDir: true,
     rollupOptions: {
       input: path.resolve(rootDir, 'webview.ts'),
