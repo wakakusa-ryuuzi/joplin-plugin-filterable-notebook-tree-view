@@ -1,6 +1,7 @@
 import joplin from 'api';
-import { Logger } from './Logger';
-import { Folder, PaginatedResponse } from '../joplin_types';
+
+import { Logger } from '../utils/Logger';
+import { Folder, PaginatedResponse } from '../joplin';
 
 /**
  * Manages folder operations for the plugin
@@ -10,14 +11,29 @@ export class FolderManager {
    * Get all folders from Joplin
    */
   static async getAllFolders(): Promise<Folder[]> {
+    Logger.info('Getting all folders...');
+
     try {
-      Logger.debug('Fetching all folders...');
       const response: PaginatedResponse<Folder> = await joplin.data.get(['folders']);
       Logger.info(`Found ${response.items?.length || 0} folders`);
+      Logger.info(`folders:  ${JSON.stringify(response.items)}`);
+
       return response.items || [];
     } catch (error) {
       Logger.error('Failed to get folders', error);
       return [];
+    }
+  }
+
+  static async openFolderById(id: string): Promise<void> {
+    Logger.info(`Attempting to open folder: ${id}`);
+
+    try {
+      Logger.info(`Opening folder with ID: ${id}`);
+      await joplin.commands.execute('openFolder', id);
+      Logger.info(`Folder opened: ${id}`);
+    } catch (error) {
+      Logger.error(`Failed to open folder with ID ${id}`, error);
     }
   }
 
@@ -26,7 +42,7 @@ export class FolderManager {
    */
   static async getFolderById(id: string): Promise<Folder | null> {
     try {
-      Logger.debug(`Fetching folder with ID: ${id}`);
+      Logger.info(`Fetching folder with ID: ${id}`);
       const folder: Folder = await joplin.data.get(['folders', id]);
       Logger.info(`Retrieved folder: ${folder.title}`);
       return folder;

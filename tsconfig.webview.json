@@ -12,6 +12,9 @@
     "outDir": "./dist-webview/",
   },
   "include": [
-    "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue", "api/**/*.d.ts" , "api/**/*.ts"
-, "uno.config.mts"  ]
+    "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue",
+    "api/**/*.d.ts" , "api/**/*.ts",
+    "src/share/**/*.ts",
+    "uno.config.mts"
+]
 }
