@@ -1,58 +1,47 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
+  import { logDebug } from '../utils/logger';
 
   const allFolders = ref([]);
   const filteredFolders = ref([]);
   const filterText = ref('');
   const selectedFolderId = ref('');
-  const debugMessages = ref(['スクリプト初期化中...']);
-
   onMounted(() => {
-    addDebugMessage('Vue コンポーネントマウント完了');
-    addDebugMessage(`webviewApi: ${typeof window.webviewApi}`);
+    logDebug('Vue コンポーネントマウント完了');
+    logDebug(`webviewApi: ${typeof window.webviewApi}`);
 
     if (!window.webviewApi) {
-      addDebugMessage('エラー: webviewApi が見つかりません');
+      logDebug('エラー: webviewApi が見つかりません');
       return;
     }
 
-    addDebugMessage('フォルダリスト取得要求を送信');
+    logDebug('フォルダリスト取得要求を送信');
     window.webviewApi.postMessage({ type: 'getFolders' }).then(() => {
-      addDebugMessage('フォルダリスト取得要求送信完了');
+      logDebug('フォルダリスト取得要求送信完了');
     }).catch(err => {
-      addDebugMessage(`エラー: ${err.message}`);
+      logDebug(`エラー: ${err.message}`);
     });
 
     // プラグインからのメッセージを受信
     window.webviewApi.onMessage((message) => {
-      addDebugMessage(`メッセージ内容: ${JSON.stringify(message)}`);
+      logDebug(`メッセージ内容: ${JSON.stringify(message)}`);
 
       const messagePayload = message.message || message;
-      addDebugMessage(`メッセージ受信: ${messagePayload.type}`);
+      logDebug(`メッセージ受信: ${messagePayload.type}`);
 
       if (messagePayload.type === 'updateFolderList') {
         allFolders.value = messagePayload.folders || [];
-        addDebugMessage(`フォルダ数: ${allFolders.value.length}`);
+        logDebug(`フォルダ数: ${allFolders.value.length}`);
         console.log('Received folders:', allFolders.value);
         handleFilterChange();
       }
     });
 
-    addDebugMessage('Vue初期化完了');
+    logDebug('Vue初期化完了');
   });
 
-
-  function addDebugMessage(message) {
-    const timestamp = new Date().toLocaleTimeString();
-    debugMessages.value.push(`[${timestamp}] ${message}`);
-    // 最新100件のみ保持
-    if (debugMessages.value.length > 100) {
-      debugMessages.value.shift();
-    }
-  };
-
   function handleFilterChange() {
-    addDebugMessage(`フィルタ適用: "${filterText.value}"`);
+    logDebug(`フィルタ適用: "${filterText.value}"`);
     filterAndDisplayFolders(filterText.value);
   };
 
@@ -90,19 +79,19 @@
     } else {
       filteredFolders.value = [...allFolders.value];
     }
-    addDebugMessage(`表示フォルダ数: ${filteredFolders.value.length}`);
+    logDebug(`表示フォルダ数: ${filteredFolders.value.length}`);
   };
 
   function openSelectedFolder(folderId) {
     const targetId = folderId || selectedFolderId.value;
     if (targetId) {
-      addDebugMessage(`フォルダ選択: ${targetId}`);
+      logDebug(`フォルダ選択: ${targetId}`);
       window.webviewApi.postMessage({
         type: 'selectFolder',
         folderId: targetId,
       });
     } else {
-      addDebugMessage('エラー: フォルダが選択されていません');
+      logDebug('エラー: フォルダが選択されていません');
     }
   };
 
