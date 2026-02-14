@@ -4,6 +4,10 @@
 export class Logger {
   private static prefix = 'FilterableFolderTreeView';
 
+  static debug(message: string, ...args: any[]): void {
+    const timestamp = new Date().toLocaleTimeString();
+    console.log(`[${timestamp}][${this.prefix}] DEBUG: ${message}`, ...args);
+  }
   static info(message: string, ...args: any[]): void {
     const timestamp = new Date().toLocaleTimeString();
     console.info(`[${timestamp}][${this.prefix}] INFO: ${message}`, ...args);
@@ -17,10 +21,5 @@ export class Logger {
   static error(message: string, ...args: any[]): void {
     const timestamp = new Date().toLocaleTimeString();
     console.error(`[${timestamp}][${this.prefix}] ERROR: ${message}`, ...args);
-  }
-
-  static debug(message: string, ...args: any[]): void {
-    const timestamp = new Date().toLocaleTimeString();
-    console.log(`[${timestamp}][${this.prefix}] DEBUG: ${message}`, ...args);
   }
 }
