@@ -4,11 +4,12 @@
   import { refDebounced } from '@vueuse/core'
 
   import { Logger } from '../../share/logger';
-  import { NotifyMessageType, RequestMessageType } from '../../share/types';
-import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
+  import { NotifyMessageType, RequestMessageType, TreeFolder } from '../../share/types';
 
-  const allFolders = ref([]);
-  const filteredFolders = ref([]);
+  type FlatFolder = { id: string; title: string; depth: number };
+
+  const folderTree = ref<TreeFolder[]>([]);
+  const displayedFolders = ref<FlatFolder[]>([]);
 
   const filterText = shallowRef('');
   const debouncedFilterText = refDebounced(filterText, 500);
@@ -36,11 +37,11 @@ import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
       Logger.debug(`Message received: ${messagePayload.type}`);
 
       if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
-        allFolders.value = messagePayload.folders || [];
-        Logger.debug(`Number of folders: ${allFolders.value.length}`);
-        Logger.debug('Received folders:', allFolders.value);
-        filterAndDisplayFolders(debouncedFilterText.value);
-      }
+          folderTree.value = messagePayload.folders || [];
+          Logger.debug(`Number of root folders: ${folderTree.value.length}`);
+          Logger.debug('Received folder tree:', folderTree.value);
+          filterAndDisplayFolders(debouncedFilterText.value);
+        }
     });
 
     Logger.debug('Vue initialization complete');
@@ -51,41 +52,18 @@ import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
     filterAndDisplayFolders(nextValue);
   });
 
-  function filterAndDisplayFolders(filterText) {
-    if (filterText) {
-      const lowered = filterText.toLowerCase();
-      const childrenByParent = new Map();
-      for (const folder of allFolders.value) {
-        if (!childrenByParent.has(folder.parent_id)) {
-          childrenByParent.set(folder.parent_id, []);
-        }
-        childrenByParent.get(folder.parent_id).push(folder);
-      }
+  function filterAndDisplayFolders(filterText: string) {
+    const normalized = (filterText || '').trim().toLowerCase();
 
-      const matchedIds = new Set(
-        allFolders.value
-          .filter(folder => folder.title.toLowerCase().includes(lowered))
-          .map(folder => folder.id)
-      );
-
-      const includeIds = new Set(matchedIds);
-      const queue = Array.from(matchedIds);
-      while (queue.length > 0) {
-        const parentId = queue.shift();
-        const children = childrenByParent.get(parentId) || [];
-        for (const child of children) {
-          if (!includeIds.has(child.id)) {
-            includeIds.add(child.id);
-            queue.push(child.id);
-          }
-        }
-      }
-
-      filteredFolders.value = allFolders.value.filter(folder => includeIds.has(folder.id));
-    } else {
-      filteredFolders.value = [...allFolders.value];
+    if (!normalized) {
+      displayedFolders.value = flattenTree(folderTree.value);
+      Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
+      return;
     }
-    Logger.debug(`Number of displayed folders: ${filteredFolders.value.length}`);
+
+    const filteredTree = filterTreeByTitle(folderTree.value, normalized);
+    displayedFolders.value = flattenTree(filteredTree);
+    Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
   };
 
   function openSelectedFolder(folderId) {
@@ -101,16 +79,35 @@ import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
     }
   };
 
-  function getIndentLevel(folder) {
-    let level = 0;
-    let currentFolder = folder;
-    while (currentFolder.parent_id) {
-      level++;
-      currentFolder = allFolders.value.find(f => f.id === currentFolder.parent_id);
-      if (!currentFolder) break;
+  function filterTreeByTitle(nodes: TreeFolder[], filterText: string): TreeFolder[] {
+    const matches: TreeFolder[] = [];
+    for (const node of nodes) {
+      const titleMatches = node.title.toLowerCase().includes(filterText);
+      if (titleMatches) {
+        matches.push(node);
+        continue;
+      }
+
+      if (node.children && node.children.length > 0) {
+        const childMatches = filterTreeByTitle(node.children, filterText);
+        if (childMatches.length > 0) {
+          matches.push(...childMatches);
+        }
+      }
     }
-    return level;
-  };
+
+    return matches;
+  }
+
+  function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): FlatFolder[] {
+    for (const node of nodes) {
+      out.push({ id: node.id, title: node.title, depth });
+      if (node.children && node.children.length > 0) {
+        flattenTree(node.children, depth + 1, out);
+      }
+    }
+    return out;
+  }
 
 </script>
 
@@ -143,15 +140,15 @@ import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
 
     <!-- Folder tree (buttons) -->
     <div class="w-full flex-1 pa-2 box-border border border-gray-300 rounded overflow-y-auto">
-      <div v-if="filteredFolders.length === 0" class="pa-2 text-gray-500">
-        {{ allFolders.length === 0 ? 'Loading...' : 'No matching folders' }}
+      <div v-if="displayedFolders.length === 0" class="pa-2 text-gray-500">
+        {{ folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
       </div>
       <button
-        v-for="folder in filteredFolders"
+        v-for="folder in displayedFolders"
         :key="folder.id"
         type="button"
         class="w-full text-left pa-1 rounded hover:bg-gray-100"
-        :style="{ paddingLeft: `${getIndentLevel(folder) * 16 + 8}px` }"
+        :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
         @click="openSelectedFolder(folder.id)"
       >
         📁 {{ folder.title }}

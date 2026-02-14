@@ -12,3 +12,11 @@ export const NotifyMessageType = {
 } as const
 
 export type NotifyMessageType = (typeof NotifyMessageType)[keyof typeof NotifyMessageType];
+
+// Tree-structured folder data for webview rendering.
+export interface TreeFolder {
+  id: string;
+  title: string;
+  parent_id?: string;
+  children: TreeFolder[];
+}

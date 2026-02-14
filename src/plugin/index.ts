@@ -26,7 +26,8 @@ joplin.plugins.register({
       switch(message.type) {
         case RequestMessageType.GetFolders:
           const folders = await FolderManager.getAllFolders();
-          await joplin.views.panels.postMessage(panel, { type: 'updateFolderList', folders });
+          const folderTree = FolderManager.buildFolderTree(folders);
+          await joplin.views.panels.postMessage(panel, { type: 'updateFolderList', folders: folderTree });
           break;
         case RequestMessageType.SelectFolder:
           await FolderManager.openFolderById(message.folderId);

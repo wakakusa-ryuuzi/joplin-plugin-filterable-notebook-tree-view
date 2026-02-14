@@ -100,6 +100,35 @@ export class FolderManager {
   }
 
   /**
+   * Build a tree structure from a flat folder list.
+   * The order of children follows the input list order for stability.
+   */
+  static buildFolderTree(folders: Folder[]): Folder[] {
+    const nodesById = new Map<string, Folder>();
+    const roots: Folder[] = [];
+
+    for (const folder of folders) {
+      nodesById.set(folder.id, { ...folder, children: [] });
+    }
+
+    for (const folder of folders) {
+      const node = nodesById.get(folder.id);
+      if (!node) {
+        continue;
+      }
+
+      if (folder.parent_id && nodesById.has(folder.parent_id)) {
+        const parent = nodesById.get(folder.parent_id);
+        parent?.children?.push(node);
+      } else {
+        roots.push(node);
+      }
+    }
+
+    return roots;
+  }
+
+  /**
    * Filter folders by title (case-insensitive)
    * Returns matching folders and their children
    */
