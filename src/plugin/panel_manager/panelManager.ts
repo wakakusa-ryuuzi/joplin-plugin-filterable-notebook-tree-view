@@ -1,7 +1,5 @@
 import joplin from 'api';
 
-import { Logger } from '../utils/Logger';
-
 export class PanelManager {
   static async createPanel(){
     return await joplin.views.panels.create('folderFilterPanel');

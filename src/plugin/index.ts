@@ -3,7 +3,7 @@ import joplin from '../../api';
 import { FolderManager } from './folder_manager/folderManager';
 import { PanelManager } from './panel_manager/panelManager';
 import { RequestMessageType } from '../share/types';
-import { Logger } from './utils/Logger';
+import { Logger } from '../share/logger';
 
 
 joplin.plugins.register({

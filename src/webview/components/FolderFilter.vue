@@ -1,47 +1,46 @@
 <script setup lang="ts">
   import { onMounted, ref } from 'vue';
-  import { logDebug } from '../utils/logger';
+  import { Logger } from '../../share/logger';
 
   const allFolders = ref([]);
   const filteredFolders = ref([]);
   const filterText = ref('');
   const selectedFolderId = ref('');
   onMounted(() => {
-    logDebug('Vue コンポーネントマウント完了');
-    logDebug(`webviewApi: ${typeof window.webviewApi}`);
+    Logger.debug('Vue コンポーネントマウント完了');
 
     if (!window.webviewApi) {
-      logDebug('エラー: webviewApi が見つかりません');
+      Logger.debug('エラー: webviewApi が見つかりません');
       return;
     }
 
-    logDebug('フォルダリスト取得要求を送信');
+    Logger.debug('フォルダリスト取得要求を送信');
     window.webviewApi.postMessage({ type: 'getFolders' }).then(() => {
-      logDebug('フォルダリスト取得要求送信完了');
+      Logger.debug('フォルダリスト取得要求送信完了');
     }).catch(err => {
-      logDebug(`エラー: ${err.message}`);
+      Logger.debug(`エラー: ${err.message}`);
     });
 
     // プラグインからのメッセージを受信
     window.webviewApi.onMessage((message) => {
-      logDebug(`メッセージ内容: ${JSON.stringify(message)}`);
+      Logger.debug(`メッセージ内容: ${JSON.stringify(message)}`);
 
       const messagePayload = message.message || message;
-      logDebug(`メッセージ受信: ${messagePayload.type}`);
+      Logger.debug(`メッセージ受信: ${messagePayload.type}`);
 
       if (messagePayload.type === 'updateFolderList') {
         allFolders.value = messagePayload.folders || [];
-        logDebug(`フォルダ数: ${allFolders.value.length}`);
-        console.log('Received folders:', allFolders.value);
+        Logger.debug(`フォルダ数: ${allFolders.value.length}`);
+        Logger.debug('Received folders:', allFolders.value);
         handleFilterChange();
       }
     });
 
-    logDebug('Vue初期化完了');
+    Logger.debug('Vue初期化完了');
   });
 
   function handleFilterChange() {
-    logDebug(`フィルタ適用: "${filterText.value}"`);
+    Logger.debug(`フィルタ適用: "${filterText.value}"`);
     filterAndDisplayFolders(filterText.value);
   };
 
@@ -79,19 +78,19 @@
     } else {
       filteredFolders.value = [...allFolders.value];
     }
-    logDebug(`表示フォルダ数: ${filteredFolders.value.length}`);
+    Logger.debug(`表示フォルダ数: ${filteredFolders.value.length}`);
   };
 
   function openSelectedFolder(folderId) {
     const targetId = folderId || selectedFolderId.value;
     if (targetId) {
-      logDebug(`フォルダ選択: ${targetId}`);
+      Logger.debug(`フォルダ選択: ${targetId}`);
       window.webviewApi.postMessage({
         type: 'selectFolder',
         folderId: targetId,
       });
     } else {
-      logDebug('エラー: フォルダが選択されていません');
+      Logger.error('エラー: フォルダが選択されていません');
     }
   };
 
