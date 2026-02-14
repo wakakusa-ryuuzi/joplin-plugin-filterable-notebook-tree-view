@@ -4,6 +4,7 @@
   import { refDebounced } from '@vueuse/core'
 
   import { Logger } from '../../share/logger';
+  import { NotifyMessageType, RequestMessageType } from '../../share/types';
 
   const allFolders = ref([]);
   const filteredFolders = ref([]);
@@ -22,7 +23,7 @@
     }
 
     Logger.debug('フォルダリスト取得要求を送信');
-    window.webviewApi.postMessage({ type: 'getFolders' }).then(() => {
+    window.webviewApi.postMessage({ type: RequestMessageType.GetFolders }).then(() => {
       Logger.debug('フォルダリスト取得要求送信完了');
     }).catch(err => {
       Logger.debug(`エラー: ${err.message}`);
@@ -30,12 +31,10 @@
 
     // プラグインからのメッセージを受信
     window.webviewApi.onMessage((message) => {
-      Logger.debug(`メッセージ内容: ${JSON.stringify(message)}`);
-
       const messagePayload = message.message || message;
       Logger.debug(`メッセージ受信: ${messagePayload.type}`);
 
-      if (messagePayload.type === 'updateFolderList') {
+      if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
         allFolders.value = messagePayload.folders || [];
         Logger.debug(`フォルダ数: ${allFolders.value.length}`);
         Logger.debug('Received folders:', allFolders.value);
@@ -93,7 +92,7 @@
     if (targetId) {
       Logger.debug(`フォルダ選択: ${targetId}`);
       window.webviewApi.postMessage({
-        type: 'selectFolder',
+        type: RequestMessageType.SelectFolder,
         folderId: targetId,
       });
     } else {
