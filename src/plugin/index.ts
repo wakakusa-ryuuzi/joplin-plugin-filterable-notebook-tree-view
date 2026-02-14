@@ -10,8 +10,11 @@ joplin.plugins.register({
   onStart: async function() {
     Logger.info('Plugin started');
 
-    await FolderManager.logFolders();
+    if(process.env.NODE_ENV === 'development') {
+      await FolderManager.logFolders();
+    }
 
+    // パネルの作成と初期化
     const panel = await PanelManager.createPanel();
     await PanelManager.initPanel(panel);
 
@@ -30,8 +33,6 @@ joplin.plugins.register({
           break;
       }
     });
-
-    Logger.info('Folder filter panel created successfully');
   },
 });
 
