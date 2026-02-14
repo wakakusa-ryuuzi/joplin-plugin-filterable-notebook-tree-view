@@ -16,11 +16,25 @@ export class FolderManager {
     Logger.info('Getting all folders...');
 
     try {
-      const response: PaginatedResponse<Folder> = await joplin.data.get(['folders']);
-      Logger.info(`Found ${response.items?.length || 0} folders`);
-      Logger.info(`folders:  ${JSON.stringify(response.items)}`);
+      const allFolders: Folder[] = [];
+      let page = 1;
+      let hasMore = true;
 
-      return response.items || [];
+      while (hasMore) {
+        const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], { page });
+
+        if (response.items && response.items.length > 0) {
+          allFolders.push(...response.items);
+        }
+
+        hasMore = response.has_more;
+        page += 1;
+      }
+
+      Logger.info(`Found ${allFolders.length} folders`);
+      Logger.info(`folders:  ${JSON.stringify(allFolders)}`);
+
+      return allFolders;
     } catch (error) {
       Logger.error('Failed to get folders', error);
       return [];
