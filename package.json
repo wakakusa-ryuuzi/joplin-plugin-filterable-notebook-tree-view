@@ -2,14 +2,12 @@
   "name": "joplin-plugin-filterablefoldertreeview",
   "version": "1.0.1",
   "scripts": {
-    "dev": "npm run dev:all",
+    "dev": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",
     "dev:webview": "vite",
     "dev:plugin": "concurrently -k \"cross-env NODE_ENV=development webpack --watch --env joplin-plugin-config=buildMain\" \"cross-env NODE_ENV=development webpack --watch --env joplin-plugin-config=buildExtraScripts\"",
-    "dev:all": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",
-    "build": "npm run build:all",
+    "build": "npm run build:plugin && npm run build:webview",
     "build:webview": "vue-tsc --noEmit && vite build",
     "build:plugin": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain",
-    "build:all": "npm run build:plugin && npm run build:webview",
     "packaging": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain && webpack --env joplin-plugin-config=buildExtraScripts && npm run build:webview && webpack --env joplin-plugin-config=createArchive",
     "updateVersion": "webpack --env joplin-plugin-config=updateVersion",
     "update": "npm install -g generator-joplin && yo joplin --node-package-manager npm --update --force"
