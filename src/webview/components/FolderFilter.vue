@@ -113,14 +113,17 @@
 
 <template>
   <div class="h-screen pa-2 flex flex-col overflow-y-auto">
+
     <!-- Filter text input -->
     <div class="relative mb-2">
+      <!-- input -->
       <input
         v-model="filterText"
         type="text"
         placeholder="Notebook name"
-        class="w-full pa-2 pr-8 box-border border border-gray-300 rounded"
+        class="w-full pa-2 pl-4 pr-8 box-border border rounded border-[var(--joplin-color)] active:border-[var(--joplin-color-active)]"
       />
+      <!-- x button -->
       <button
         v-if="filterText"
         type="button"
@@ -139,15 +142,15 @@
     </div>
 
     <!-- Folder tree (buttons) -->
-    <div class="w-full flex-1 pa-2 box-border border border-gray-300 rounded overflow-y-auto">
-      <div v-if="displayedFolders.length === 0" class="pa-2 text-gray-500">
+    <div class="w-full flex-1 pa-2 box-border border border-[var(--joplin-color)] rounded overflow-y-auto">
+      <div v-if="displayedFolders.length === 0" class="py-1 px-2">
         {{ folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
       </div>
       <button
         v-for="folder in displayedFolders"
         :key="folder.id"
         type="button"
-        class="w-full text-left pa-1 rounded hover:bg-gray-100"
+        class="w-full text-left py-1 rounded hover:bg-[var(--joplin-background-hover)]"
         :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
         @click="openSelectedFolder(folder.id)"
       >
