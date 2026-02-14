@@ -5,6 +5,7 @@
 
   import { Logger } from '../../share/logger';
   import { NotifyMessageType, RequestMessageType } from '../../share/types';
+import { T } from '@unocss/preset-wind4/dist/theme-BcMDscP8.mjs';
 
   const allFolders = ref([]);
   const filteredFolders = ref([]);
@@ -15,38 +16,38 @@
   const selectedFolderId = ref('');
 
   onMounted(() => {
-    Logger.debug('Vue コンポーネントマウント完了');
+    Logger.debug('Vue component mounted');
 
     if (!window.webviewApi) {
-      Logger.debug('エラー: webviewApi が見つかりません');
+      Logger.error('not find webviewApi');
       return;
     }
 
-    Logger.debug('フォルダリスト取得要求を送信');
+    Logger.debug('Sending folder list request');
     window.webviewApi.postMessage({ type: RequestMessageType.GetFolders }).then(() => {
-      Logger.debug('フォルダリスト取得要求送信完了');
+      Logger.debug('Folder list request sent successfully');
     }).catch(err => {
-      Logger.debug(`エラー: ${err.message}`);
+      Logger.error(`${err.message}`);
     });
 
     // プラグインからのメッセージを受信
     window.webviewApi.onMessage((message) => {
       const messagePayload = message.message || message;
-      Logger.debug(`メッセージ受信: ${messagePayload.type}`);
+      Logger.debug(`Message received: ${messagePayload.type}`);
 
       if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
         allFolders.value = messagePayload.folders || [];
-        Logger.debug(`フォルダ数: ${allFolders.value.length}`);
+        Logger.debug(`Number of folders: ${allFolders.value.length}`);
         Logger.debug('Received folders:', allFolders.value);
         filterAndDisplayFolders(debouncedFilterText.value);
       }
     });
 
-    Logger.debug('Vue初期化完了');
+    Logger.debug('Vue initialization complete');
   });
 
   watch(debouncedFilterText, (nextValue) => {
-    Logger.debug(`フィルタ適用: "${nextValue}"`);
+    Logger.debug(`Applying filter: "${nextValue}"`);
     filterAndDisplayFolders(nextValue);
   });
 
@@ -84,19 +85,19 @@
     } else {
       filteredFolders.value = [...allFolders.value];
     }
-    Logger.debug(`表示フォルダ数: ${filteredFolders.value.length}`);
+    Logger.debug(`Number of displayed folders: ${filteredFolders.value.length}`);
   };
 
   function openSelectedFolder(folderId) {
     const targetId = folderId || selectedFolderId.value;
     if (targetId) {
-      Logger.debug(`フォルダ選択: ${targetId}`);
+      Logger.debug(`Folder selected: ${targetId}`);
       window.webviewApi.postMessage({
         type: RequestMessageType.SelectFolder,
         folderId: targetId,
       });
     } else {
-      Logger.error('エラー: フォルダが選択されていません');
+      Logger.error('Error: No folder selected');
     }
   };
 
@@ -115,7 +116,7 @@
 
 <template>
   <div class="h-screen pa-2 flex flex-col overflow-y-auto">
-    <!-- 絞り込みテキスト入力 -->
+    <!-- Filter text input -->
     <div class="relative mb-2">
       <input
         v-model="filterText"
@@ -140,10 +141,10 @@
       </button>
     </div>
 
-    <!-- フォルダツリー (ボタン) -->
+    <!-- Folder tree (buttons) -->
     <div class="w-full flex-1 pa-2 box-border border border-gray-300 rounded overflow-y-auto">
       <div v-if="filteredFolders.length === 0" class="pa-2 text-gray-500">
-        {{ allFolders.length === 0 ? '読み込み中...' : '該当するフォルダがありません' }}
+        {{ allFolders.length === 0 ? 'Loading...' : 'No matching folders' }}
       </div>
       <button
         v-for="folder in filteredFolders"
