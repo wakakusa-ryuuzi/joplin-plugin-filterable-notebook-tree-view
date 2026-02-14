@@ -2,7 +2,7 @@
  * Logger utility for plugin logging
  */
 export class Logger {
-  private static prefix = '[FilterableFolderTreeView]';
+  private static prefix = 'FilterableFolderTreeView';
 
   static info(message: string, ...args: any[]): void {
     const timestamp = new Date().toLocaleTimeString();
