@@ -1,11 +1,18 @@
 <script setup lang="ts">
-  import { onMounted, ref } from 'vue';
+  import { onMounted, ref, shallowRef, watch } from 'vue';
+
+  import { refDebounced } from '@vueuse/core'
+
   import { Logger } from '../../share/logger';
 
   const allFolders = ref([]);
   const filteredFolders = ref([]);
-  const filterText = ref('');
+
+  const filterText = shallowRef('');
+  const debouncedFilterText = refDebounced(filterText, 500);
+
   const selectedFolderId = ref('');
+
   onMounted(() => {
     Logger.debug('Vue コンポーネントマウント完了');
 
@@ -32,17 +39,17 @@
         allFolders.value = messagePayload.folders || [];
         Logger.debug(`フォルダ数: ${allFolders.value.length}`);
         Logger.debug('Received folders:', allFolders.value);
-        handleFilterChange();
+        filterAndDisplayFolders(debouncedFilterText.value);
       }
     });
 
     Logger.debug('Vue初期化完了');
   });
 
-  function handleFilterChange() {
-    Logger.debug(`フィルタ適用: "${filterText.value}"`);
-    filterAndDisplayFolders(filterText.value);
-  };
+  watch(debouncedFilterText, (nextValue) => {
+    Logger.debug(`フィルタ適用: "${nextValue}"`);
+    filterAndDisplayFolders(nextValue);
+  });
 
   function filterAndDisplayFolders(filterText) {
     if (filterText) {
@@ -115,7 +122,6 @@
         v-model="filterText"
         type="text"
         placeholder="Notebook name"
-        @input="handleFilterChange"
         class="w-full pa-2 pr-8 box-border border border-gray-300 rounded"
       />
       <button
@@ -129,7 +135,7 @@
               hover:bg-gray-300 hover:text-gray-700
               active:scale-90
               transition-all duration-150"
-        @click="filterText = ''; handleFilterChange();"
+        @click="filterText = ''"
       >
         <span class="i-mdi:window-close text-sm"></span>
       </button>
