@@ -65,3 +65,10 @@ export interface Folder {
   /** Child folders (when fetched as tree structure) */
   children?: Folder[];
 }
+
+
+export interface FolderIcon {
+  emoji? : string;
+  name?: string;
+  type?: number;
+}

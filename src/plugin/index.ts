@@ -2,7 +2,7 @@ import joplin from '../../api';
 
 import { FolderManager } from './folder_manager/folderManager';
 import { PanelManager } from './panel_manager/panelManager';
-import { RequestMessageType } from '../share/types';
+import { NotifyMessageType, RequestMessageType } from '../share/types';
 import { Logger } from '../share/logger';
 
 
@@ -26,8 +26,8 @@ joplin.plugins.register({
       switch(message.type) {
         case RequestMessageType.GetFolders:
           const folders = await FolderManager.getAllFolders();
-          const folderTree = FolderManager.buildFolderTree(folders);
-          await joplin.views.panels.postMessage(panel, { type: 'updateFolderList', folders: folderTree });
+          const folderTree = FolderManager.toTreeFolderTree(folders);
+          await joplin.views.panels.postMessage(panel, { type: NotifyMessageType.UpdateFolderList, folders: folderTree });
           break;
         case RequestMessageType.SelectFolder:
           await FolderManager.openFolderById(message.folderId);

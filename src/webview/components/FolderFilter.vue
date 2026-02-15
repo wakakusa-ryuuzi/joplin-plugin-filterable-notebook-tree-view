@@ -6,7 +6,7 @@
   import { Logger } from '../../share/logger';
   import { NotifyMessageType, RequestMessageType, TreeFolder } from '../../share/types';
 
-  type FlatFolder = { id: string; title: string; depth: number };
+  type FlatFolder = { id: string; title: string; depth: number; icon?: string };
 
   const folderTree = ref<TreeFolder[]>([]);
   const displayedFolders = ref<FlatFolder[]>([]);
@@ -39,7 +39,7 @@
       if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
           folderTree.value = messagePayload.folders || [];
           Logger.debug(`Number of root folders: ${folderTree.value.length}`);
-          Logger.debug('Received folder tree:', folderTree.value);
+          // FIXME: これ要る？
           filterAndDisplayFolders(debouncedFilterText.value);
         }
     });
@@ -101,7 +101,7 @@
 
   function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): FlatFolder[] {
     for (const node of nodes) {
-      out.push({ id: node.id, title: node.title, depth });
+      out.push({ id: node.id, title: node.title, depth, icon: node.icon });
       if (node.children && node.children.length > 0) {
         flattenTree(node.children, depth + 1, out);
       }
@@ -154,7 +154,7 @@
         :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
         @click="openSelectedFolder(folder.id)"
       >
-        📁 {{ folder.title }}
+        {{ folder.icon ?? '' }} {{ folder.title }}
       </button>
     </div>
   </div>

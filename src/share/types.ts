@@ -17,6 +17,7 @@ export type NotifyMessageType = (typeof NotifyMessageType)[keyof typeof NotifyMe
 export interface TreeFolder {
   id: string;
   title: string;
+  icon?: string;
   parent_id?: string;
   children: TreeFolder[];
 }

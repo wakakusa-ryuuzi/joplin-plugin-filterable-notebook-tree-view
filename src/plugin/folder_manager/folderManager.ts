@@ -1,6 +1,7 @@
 import joplin from 'api';
 
-import { Folder, PaginatedResponse } from '../joplin';
+import { Folder, FolderIcon, PaginatedResponse } from '../joplin';
+import { TreeFolder } from '../../share/types';
 
 import { Logger } from '../../share/logger';
 
@@ -41,7 +42,6 @@ export class FolderManager {
     }
   }
 
-
   /**
    * Get all folders from Joplin
    */
@@ -54,7 +54,7 @@ export class FolderManager {
       let hasMore = true;
 
       while (hasMore) {
-        const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], { page });
+        const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], { fields: ['id', 'title', 'parent_id', 'icon'], page } );
 
         if (response.items && response.items.length > 0) {
           allFolders.push(...response.items);
@@ -103,6 +103,22 @@ export class FolderManager {
     return roots;
   }
 
+  /**
+   * Convert folder tree into TreeFolder with basic validation.
+   */
+  static toTreeFolderTree(folders: Folder[]): TreeFolder[] {
+    const folderTree = this.buildFolderTree(folders);
+    const result: TreeFolder[] = [];
+
+    for (const node of folderTree) {
+      const converted = this.toTreeFolder(node);
+      if (converted) {
+        result.push(converted);
+      }
+    }
+
+    return result;
+  }
 
   static async openFolderById(id: string): Promise<void> {
     Logger.info(`Attempting to open folder: ${id}`);
@@ -129,5 +145,56 @@ export class FolderManager {
       Logger.error(`Failed to get folder with ID ${id}`, error);
       return null;
     }
+  }
+
+
+  private static toTreeFolder(node: Folder): TreeFolder | null {
+    if (!node.id || !node.title) {
+      Logger.warn('Skipping folder with missing id or title', { id: node.id, title: node.title });
+      return null;
+    }
+
+    const children: TreeFolder[] = [];
+    if (node.children && node.children.length > 0) {
+      for (const child of node.children) {
+        const converted = this.toTreeFolder(child);
+        if (converted) {
+          children.push(converted);
+        }
+      }
+    }
+
+    return {
+      id: node.id,
+      title: node.title,
+      icon: this.extractFolderIcon(node.icon),
+      parent_id: node.parent_id,
+      children,
+    };
+  }
+
+  /**
+   * Folder → TreeNode変換時用 Extracts the folder icon from the given icon string.
+   * @param icon The icon string, which can be a JSON string representing a FolderIcon or a plain string.
+   * @returns 取得できるemojiを直接（なければundefined）
+   */
+  private static extractFolderIcon(icon?: string): string | undefined {
+    if (!icon) {
+      return undefined;
+    }
+
+    try {
+      const parsed = JSON.parse(icon) as FolderIcon | string;
+      if (typeof parsed === 'string') {
+        return parsed;
+      }
+      if (parsed && typeof parsed === 'object' && typeof parsed.emoji === 'string') {
+        return parsed.emoji;
+      }
+    } catch (error) {
+      Logger.warn('Failed to parse folder icon JSON', { icon, error });
+    }
+
+    return undefined;
   }
 }
