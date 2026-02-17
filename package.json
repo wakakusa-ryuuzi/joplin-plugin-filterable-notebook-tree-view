@@ -1,5 +1,5 @@
 {
-  "name": "joplin-plugin-filterablefoldertreeview",
+  "name": "joplin-plugin-filterable-notebook-tree-view",
   "version": "1.0.1",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",

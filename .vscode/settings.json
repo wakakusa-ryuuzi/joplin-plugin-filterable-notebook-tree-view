@@ -1,0 +1,10 @@
+{
+  "json.schemas": [
+    {
+      "fileMatch": [
+        "/src/manifest.json"
+      ],
+      "url": "./.vscode/joplin-plugin-manifest.schema.json"
+    }
+  ]
+}

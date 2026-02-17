@@ -1,0 +1,233 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://local/joplin-plugin-manifest.schema.json",
+  "title": "Joplin Plugin Manifest",
+  "description": "JSON schema for Joplin plugin manifest.json",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "manifest_version",
+    "id",
+    "name",
+    "version",
+    "app_min_version"
+  ],
+  "properties": {
+    "manifest_version": {
+      "type": "integer",
+      "const": 1,
+      "description": "For now should always be 1."
+    },
+    "id": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Unique plugin identifier."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Plugin display name shown in the UI."
+    },
+    "version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Plugin version such as 1.0.0."
+    },
+    "app_min_version": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Minimum Joplin version compatible with this plugin."
+    },
+    "app_min_version_mobile": {
+      "type": "string",
+      "description": "Minimum mobile Joplin version, if different from app_min_version."
+    },
+    "platforms": {
+      "description": "Supported platforms. If omitted, desktop is used by default for most plugins.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "const": "desktop",
+            "description": "Desktop app."
+          },
+          {
+            "const": "mobile",
+            "description": "Mobile app."
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "description": {
+      "type": "string",
+      "description": "Detailed plugin description."
+    },
+    "author": {
+      "type": "string",
+      "description": "Plugin author name."
+    },
+    "homepage_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Plugin homepage URL (can be GitHub repository URL)."
+    },
+    "repository_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "URL of the source repository."
+    },
+    "keywords": {
+      "description": "Keywords used for plugin discovery and search.",
+      "type": "array",
+      "items": {
+        "type": "string"
+      }
+    },
+    "categories": {
+      "description": "Categories describing plugin functionality.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "const": "appearance",
+            "description": "Dealing with appearance of app elements."
+          },
+          {
+            "const": "developer tools",
+            "description": "Built for developers."
+          },
+          {
+            "const": "productivity",
+            "description": "Makes Joplin more productive to use."
+          },
+          {
+            "const": "themes",
+            "description": "Changes app theme."
+          },
+          {
+            "const": "integrations",
+            "description": "Integrates third-party services or apps."
+          },
+          {
+            "const": "viewer",
+            "description": "Enhances note rendering/viewer."
+          },
+          {
+            "const": "search",
+            "description": "Enhances search in the app."
+          },
+          {
+            "const": "tags",
+            "description": "Deals with note tags."
+          },
+          {
+            "const": "editor",
+            "description": "Enhances the note editor."
+          },
+          {
+            "const": "files",
+            "description": "Deals with files (import/export/backup, etc.)."
+          },
+          {
+            "const": "personal knowledge management",
+            "description": "For organizing and managing notes."
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "screenshots": {
+      "description": "Screenshots shown on the plugin website.",
+      "type": "array",
+      "items": {
+        "$ref": "#/$defs/image"
+      }
+    },
+    "icons": {
+      "description": "Optional PNG icons by size. If omitted, a default icon is used.",
+      "$ref": "#/$defs/icons"
+    },
+    "promo_tile": {
+      "description": "Optional promo image for the plugin website (typically 440x280 JPEG/PNG).",
+      "$ref": "#/$defs/image"
+    },
+    "permissions": {
+      "description": "Requested plugin permissions.",
+      "type": "array",
+      "items": {
+        "oneOf": [
+          {
+            "const": "model",
+            "description": "Allows access to plugin model-related features."
+          }
+        ]
+      },
+      "uniqueItems": true
+    },
+    "_publish_hash": {
+      "type": "string"
+    },
+    "_publish_commit": {
+      "type": "string"
+    },
+    "_package_hash": {
+      "type": "string"
+    },
+    "_npm_package_name": {
+      "type": "string"
+    },
+    "_obsolete": {
+      "type": "boolean"
+    },
+    "_recommended": {
+      "type": "boolean"
+    }
+  },
+  "$defs": {
+    "image": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Image object used by screenshots and promo_tile.",
+      "required": [
+        "src",
+        "label"
+      ],
+      "properties": {
+        "src": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Path or URL to image. If path, it should be relative to repository root."
+        },
+        "label": {
+          "type": "string",
+          "minLength": 1,
+          "description": "Accessible description for screen readers or fallback text."
+        }
+      }
+    },
+    "icons": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Icon paths (PNG) relative to repository root.",
+      "properties": {
+        "16": {
+          "type": "string",
+          "description": "Path to 16x16 PNG icon."
+        },
+        "32": {
+          "type": "string",
+          "description": "Path to 32x32 PNG icon."
+        },
+        "48": {
+          "type": "string",
+          "description": "Path to 48x48 PNG icon."
+        },
+        "128": {
+          "type": "string",
+          "description": "Path to 128x128 PNG icon."
+        }
+      }
+    }
+  }
+}
