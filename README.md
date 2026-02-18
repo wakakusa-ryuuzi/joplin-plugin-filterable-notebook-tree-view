@@ -1,5 +1,22 @@
-# Joplin Plugin
+# Joplin Plugin Filterable Notebook TreeView
 
-This is your new Joplin plugin. It is suggested that you use this README file to document your plugin.
+> [!CAUTION]
+> This plugin is currently under development.
+> Use at your own risk.
 
-For information on how to build or publish the plugin, please see [GENERATOR_DOC.md](./GENERATOR_DOC.md)
+Filterable Notebook TreeView adds a panel to Joplin. In this panel, you can filter notebooks by text.
+
+
+# Motivation
+
+As a heavy Joplin user, I ended up with too many notebooks.
+I wanted to filter them while keeping the tree structure intact.
+
+
+# Installation
+
+TODO: 書く
+
+# Usage
+
+TODO: 書く
