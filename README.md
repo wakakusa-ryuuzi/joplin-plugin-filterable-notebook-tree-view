@@ -1,22 +1,54 @@
 # Joplin Plugin Filterable Notebook TreeView
 
+[日本語](./doc/README.jp.md)
+
 > [!CAUTION]
 > This plugin is currently under development.
 > Use at your own risk.
 
-Filterable Notebook TreeView adds a panel to Joplin. In this panel, you can filter notebooks by text.
+Filterable Notebook TreeView adds a panel that lets you filter the notebook tree by name.
 
+![demo](./doc/image/demo.gif)
 
 # Motivation
 
-As a heavy Joplin user, I ended up with too many notebooks.
-I wanted to filter them while keeping the tree structure intact.
+As a heavy Joplin user, I ended up with too many notebooks, which made them hard to find.
 
+I wanted a way to filter that:
+
+- stays visible as a panel
+- keeps parent/child relationships visible
+
+So I created a filtering approach separate from the command palette.
 
 # Installation
 
-TODO: 書く
+This plugin is published in Joplin's plugin registry.
+In Joplin, open `Options` -> `Plugins`, then search for `Filterable Notebook TreeView`.
 
 # Usage
 
-TODO: 書く
+## Panel
+
+After installing and enabling the plugin, the panel appears.
+Use `View` -> `Change application layout` to place it wherever you like.
+
+## Filter
+
+Type text into the field labeled `Notebook Name`.
+Folders containing that text are shown, along with their parent path up to the root.
+
+Selecting a folder in the panel moves Joplin to that folder.
+
+# TODO
+
+The following items are planned features or known bugs:
+
+- [ ] You currently need to restart Joplin to show newly created notebooks
+- [ ] Display order may not match Joplin in some cases
+- [ ] Parent folders may not appear in some cases
+
+
+# Lisence
+
+This project is licensed under the MIT License.
