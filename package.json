@@ -1,6 +1,6 @@
 {
   "name": "joplin-plugin-filterable-notebook-tree-view",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",
     "dev:webview": "vite",
@@ -8,7 +8,7 @@
     "build": "npm run build:plugin && npm run build:webview",
     "build:webview": "vue-tsc --noEmit && vite build",
     "build:plugin": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain",
-    "packaging": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain && webpack --env joplin-plugin-config=buildExtraScripts && npm run build:webview && webpack --env joplin-plugin-config=createArchive",
+    "dist": "cross-env NODE_ENV=production webpack --env joplin-plugin-config=buildMain && webpack --env joplin-plugin-config=buildExtraScripts && npm run build:webview && webpack --env joplin-plugin-config=createArchive",
     "updateVersion": "webpack --env joplin-plugin-config=updateVersion",
     "update": "npm install -g generator-joplin && yo joplin --node-package-manager npm --update --force"
   },
