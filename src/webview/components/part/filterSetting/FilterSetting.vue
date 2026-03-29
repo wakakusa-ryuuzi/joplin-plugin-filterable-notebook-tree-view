@@ -3,7 +3,12 @@
 import { ref } from 'vue';
 
 // project
-import GroupPanel from '@components/base/GroupPanel.vue';
+import GroupPanel from '../../base/GroupPanel.vue';
+
+
+const emit = defineEmits<{
+  (e: 'reload'): void
+}>();
 
 const exactMatchChecked = ref(false);
 const regexpChecked = ref(false);
@@ -37,6 +42,7 @@ const noChildrenChecked = ref(false);
                 hover:bg-gray-300 hover:text-gray-700
                 active:scale-90
                 transition-all duration-150"
+          @click="emit('reload')"
         >
           <span class="i-mdi:reload text-sm"></span>
         </button>

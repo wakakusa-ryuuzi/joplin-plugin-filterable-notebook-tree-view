@@ -10,6 +10,7 @@ import { NotifyMessageType, RequestMessageType, TreeFolder, FlatFolder } from '.
 import TextFilter from '../components/part/textFilter/TextFilter.vue';
 import FilterSetting from '../components/part/filterSetting/FilterSetting.vue';
 import FolderList from '../components/part/folderList/FolderList.vue';
+import FolderLoading from '../components/part/folderLoading/FolderLoading.vue';
 
 
 // === text filter ===
@@ -115,9 +116,13 @@ function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): Fl
 
     <TextFilter v-model="filterText" />
 
+    <FolderLoading
+      v-if="folderTree.length === 0"
+    />
     <FolderList
+      v-else
       class="flex-1 overflow-y-auto"
-      :displayedFolders="displayedFolders" :folderTree="folderTree"
+      :displayedFolders="displayedFolders"
     />
   </div>
 </template>

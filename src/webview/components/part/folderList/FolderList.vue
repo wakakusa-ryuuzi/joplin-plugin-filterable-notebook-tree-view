@@ -4,13 +4,12 @@ import { ref } from 'vue';
 
 // project
 import { Logger } from '../../../../share/logger';
-import { RequestMessageType, TreeFolder, FlatFolder } from '../../../../share/types';
+import { RequestMessageType, FlatFolder } from '../../../../share/types';
 
 import GroupPanel from '../../base/GroupPanel.vue';
 
 const props = defineProps<{
   displayedFolders: FlatFolder[];
-  folderTree: TreeFolder[];
 }>();
 
 const selectedFolderId = ref('');
@@ -33,7 +32,7 @@ function openSelectedFolder(folderId: string) {
   <GroupPanel>
     <div class="pa-2">
       <div v-if="props.displayedFolders.length === 0" class="py-1 px-2">
-        {{ props.folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
+        {{ 'No matching folders' }}
       </div>
       <button
         v-for="folder in props.displayedFolders"
