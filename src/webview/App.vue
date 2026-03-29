@@ -1,10 +1,10 @@
 <script setup lang="ts">
-import FolderFilter from './components/FolderFilter.vue';
+import MainPage from './page/MainPage.vue';
 </script>
 
 <template>
   <div class="joplin-ui">
-    <FolderFilter />
+    <MainPage />
   </div>
 </template>
 

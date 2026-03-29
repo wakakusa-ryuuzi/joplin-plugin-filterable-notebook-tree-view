@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import GroupPanel from '../components/GroupPanel.vue';
+
   import { onMounted, ref, shallowRef, watch } from 'vue';
 
   import { refDebounced } from '@vueuse/core'
@@ -112,51 +114,54 @@
 </script>
 
 <template>
-  <div class="h-screen pa-2 flex flex-col overflow-y-auto">
+  <div class="h-screen w-screen overflow-y-hidden pa-2 flex flex-col gap-1">
+    <GroupPanel>a</GroupPanel>
 
-    <!-- Filter text input -->
-    <div class="relative mb-2">
-      <!-- input -->
-      <input
-        v-model="filterText"
-        type="text"
-        placeholder="Notebook name"
-        class="w-full pa-2 pl-4 pr-8 box-border border rounded border-[var(--joplin-color)] active:border-[var(--joplin-color-active)]"
-      />
-      <!-- x button -->
-      <button
-        v-if="filterText"
-        type="button"
-        class="absolute right-2 top-1/2 -translate-y-1/2
-              w-5 h-5
-              grid place-items-center
-              rounded-full
-              bg-gray-200 text-gray-500
-              hover:bg-gray-300 hover:text-gray-700
-              active:scale-90
-              transition-all duration-150"
-        @click="filterText = ''"
-      >
-        <span class="i-mdi:window-close text-sm"></span>
-      </button>
-    </div>
-
-    <!-- Folder tree (buttons) -->
-    <div class="w-full flex-1 pa-2 box-border border border-[var(--joplin-color)] rounded overflow-y-auto">
-      <div v-if="displayedFolders.length === 0" class="py-1 px-2">
-        {{ folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
+    <GroupPanel>
+      <div class="relative mb-2">
+        <!-- input -->
+        <input
+          v-model="filterText"
+          type="text"
+          placeholder="Notebook name"
+          class="w-full pa-2 pl-4 pr-8"
+        />
+        <!-- x button -->
+        <button
+          v-if="filterText"
+          type="button"
+          class="absolute right-2 top-1/2 -translate-y-1/2
+                w-5 h-5
+                grid place-items-center
+                rounded-full
+                bg-gray-200 text-gray-500
+                hover:bg-gray-300 hover:text-gray-700
+                active:scale-90
+                transition-all duration-150"
+          @click="filterText = ''"
+        >
+          <span class="i-mdi:window-close text-sm"></span>
+        </button>
       </div>
-      <button
-        v-for="folder in displayedFolders"
-        :key="folder.id"
-        type="button"
-        class="w-full text-left py-1 rounded hover:bg-[var(--joplin-background-hover)]"
-        :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
-        @click="openSelectedFolder(folder.id)"
-      >
-        {{ folder.icon ?? '' }} {{ folder.title }}
-      </button>
-    </div>
+    </GroupPanel>
+
+    <GroupPanel class="flex-1 overflow-y-auto">
+      <div class="pa-2">
+        <div v-if="displayedFolders.length === 0" class="py-1 px-2">
+          {{ folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
+        </div>
+        <button
+          v-for="folder in displayedFolders"
+          :key="folder.id"
+          type="button"
+          class="w-full text-left py-1 rounded hover:bg-[var(--joplin-background-hover)]"
+          :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
+          @click="openSelectedFolder(folder.id)"
+        >
+          {{ folder.icon ?? '' }} {{ folder.title }}
+        </button>
+      </div>
+    </GroupPanel>
   </div>
 </template>
 
