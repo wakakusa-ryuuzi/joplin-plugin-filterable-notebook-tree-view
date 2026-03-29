@@ -1,21 +1,27 @@
 {
   "compilerOptions": {
     "composite": true,
-
     "module": "esnext",
     "target": "es2015",
     "moduleResolution": "bundler",
     "isolatedModules": true,
     "resolveJsonModule": true,
     "esModuleInterop": true,
-
     "baseUrl": "src/webview",
     "outDir": "./dist-webview/",
+    "paths": {
+      "@components/*": [
+        "components/*"
+      ]
+    }
   },
   "include": [
-    "src/webview/**/*.ts", "src/webview/**/*.d.ts", "src/webview/**/*.vue",
-    "api/**/*.d.ts" , "api/**/*.ts",
+    "src/webview/**/*.ts",
+    "src/webview/**/*.d.ts",
+    "src/webview/**/*.vue",
+    "api/**/*.d.ts",
+    "api/**/*.ts",
     "src/share/**/*.ts",
     "uno.config.mts"
-]
+  ]
 }

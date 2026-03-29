@@ -1,167 +1,124 @@
 <script setup lang="ts">
-import GroupPanel from '../components/GroupPanel.vue';
+// vue
+import { onMounted, ref, shallowRef, watch } from 'vue';
+import { refDebounced } from '@vueuse/core'
 
-  import { onMounted, ref, shallowRef, watch } from 'vue';
+// project
+import { Logger } from '../../share/logger';
+import { NotifyMessageType, RequestMessageType, TreeFolder, FlatFolder } from '../../share/types';
 
-  import { refDebounced } from '@vueuse/core'
+import TextFilter from '../components/part/textFilter/TextFilter.vue';
+import FilterSetting from '../components/part/filterSetting/FilterSetting.vue';
+import FolderList from '../components/part/folderList/FolderList.vue';
 
-  import { Logger } from '../../share/logger';
-  import { NotifyMessageType, RequestMessageType, TreeFolder } from '../../share/types';
 
-  type FlatFolder = { id: string; title: string; depth: number; icon?: string };
+// === text filter ===
 
-  const folderTree = ref<TreeFolder[]>([]);
-  const displayedFolders = ref<FlatFolder[]>([]);
+const filterText = shallowRef('');
+const debouncedFilterText = refDebounced(filterText, 500);
 
-  const filterText = shallowRef('');
-  const debouncedFilterText = refDebounced(filterText, 500);
+watch(debouncedFilterText, (nextValue) => {
+  Logger.debug(`Applying filter: "${nextValue}"`);
+  filterAndDisplayFolders(nextValue);
+});
 
-  const selectedFolderId = ref('');
 
-  onMounted(() => {
-    Logger.debug('Vue component mounted');
+// === folder ===
 
-    if (!window.webviewApi) {
-      Logger.error('not find webviewApi');
-      return;
-    }
+const folderTree = ref<TreeFolder[]>([]);
+const displayedFolders = ref<FlatFolder[]>([]);
 
-    Logger.debug('Sending folder list request');
-    window.webviewApi.postMessage({ type: RequestMessageType.GetFolders }).then(() => {
-      Logger.debug('Folder list request sent successfully');
-    }).catch(err => {
-      Logger.error(`${err.message}`);
-    });
+onMounted(() => {
+  Logger.debug('Vue component mounted');
 
-    // プラグインからのメッセージを受信
-    window.webviewApi.onMessage((message) => {
-      const messagePayload = message.message || message;
-      Logger.debug(`Message received: ${messagePayload.type}`);
+  if (!window.webviewApi) {
+    Logger.error('not find webviewApi');
+    return;
+  }
 
-      if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
-          folderTree.value = messagePayload.folders || [];
-          Logger.debug(`Number of root folders: ${folderTree.value.length}`);
-          // FIXME: これ要る？
-          filterAndDisplayFolders(debouncedFilterText.value);
-        }
-    });
-
-    Logger.debug('Vue initialization complete');
+  Logger.debug('Sending folder list request');
+  window.webviewApi.postMessage({ type: RequestMessageType.GetFolders }).then(() => {
+    Logger.debug('Folder list request sent successfully');
+  }).catch(err => {
+    Logger.error(`${err.message}`);
   });
 
-  watch(debouncedFilterText, (nextValue) => {
-    Logger.debug(`Applying filter: "${nextValue}"`);
-    filterAndDisplayFolders(nextValue);
+  // プラグインからのメッセージを受信
+  window.webviewApi.onMessage((message) => {
+    const messagePayload = message.message || message;
+    Logger.debug(`Message received: ${messagePayload.type}`);
+
+    if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
+        folderTree.value = messagePayload.folders || [];
+        Logger.debug(`Number of root folders: ${folderTree.value.length}`);
+        // FIXME: これ要る？
+        filterAndDisplayFolders(debouncedFilterText.value);
+      }
   });
 
-  function filterAndDisplayFolders(filterText: string) {
-    const normalized = (filterText || '').trim().toLowerCase();
+  Logger.debug('Vue initialization complete');
+});
 
-    if (!normalized) {
-      displayedFolders.value = flattenTree(folderTree.value);
-      Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
-      return;
-    }
 
-    const filteredTree = filterTreeByTitle(folderTree.value, normalized);
-    displayedFolders.value = flattenTree(filteredTree);
+
+function filterAndDisplayFolders(filterText: string) {
+  const normalized = (filterText || '').trim().toLowerCase();
+
+  if (!normalized) {
+    displayedFolders.value = flattenTree(folderTree.value);
     Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
-  };
-
-  function openSelectedFolder(folderId) {
-    const targetId = folderId || selectedFolderId.value;
-    if (targetId) {
-      Logger.debug(`Folder selected: ${targetId}`);
-      window.webviewApi.postMessage({
-        type: RequestMessageType.SelectFolder,
-        folderId: targetId,
-      });
-    } else {
-      Logger.error('Error: No folder selected');
-    }
-  };
-
-  function filterTreeByTitle(nodes: TreeFolder[], filterText: string): TreeFolder[] {
-    const matches: TreeFolder[] = [];
-    for (const node of nodes) {
-      const titleMatches = node.title.toLowerCase().includes(filterText);
-      if (titleMatches) {
-        matches.push(node);
-        continue;
-      }
-
-      if (node.children && node.children.length > 0) {
-        const childMatches = filterTreeByTitle(node.children, filterText);
-        if (childMatches.length > 0) {
-          matches.push(...childMatches);
-        }
-      }
-    }
-
-    return matches;
+    return;
   }
 
-  function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): FlatFolder[] {
-    for (const node of nodes) {
-      out.push({ id: node.id, title: node.title, depth, icon: node.icon });
-      if (node.children && node.children.length > 0) {
-        flattenTree(node.children, depth + 1, out);
+  const filteredTree = filterTreeByTitle(folderTree.value, normalized);
+  displayedFolders.value = flattenTree(filteredTree);
+  Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
+};
+
+
+
+function filterTreeByTitle(nodes: TreeFolder[], filterText: string): TreeFolder[] {
+  const matches: TreeFolder[] = [];
+  for (const node of nodes) {
+    const titleMatches = node.title.toLowerCase().includes(filterText);
+    if (titleMatches) {
+      matches.push(node);
+      continue;
+    }
+
+    if (node.children && node.children.length > 0) {
+      const childMatches = filterTreeByTitle(node.children, filterText);
+      if (childMatches.length > 0) {
+        matches.push(...childMatches);
       }
     }
-    return out;
   }
+
+  return matches;
+}
+
+function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): FlatFolder[] {
+  for (const node of nodes) {
+    out.push({ id: node.id, title: node.title, depth, icon: node.icon });
+    if (node.children && node.children.length > 0) {
+      flattenTree(node.children, depth + 1, out);
+    }
+  }
+  return out;
+}
 
 </script>
 
 <template>
   <div class="h-screen w-screen overflow-y-hidden pa-2 flex flex-col gap-1">
-    <GroupPanel>a</GroupPanel>
+    <!-- <FilterSetting /> -->
 
-    <GroupPanel>
-      <div class="relative mb-2">
-        <!-- input -->
-        <input
-          v-model="filterText"
-          type="text"
-          placeholder="Notebook name"
-          class="w-full pa-2 pl-4 pr-8"
-        />
-        <!-- x button -->
-        <button
-          v-if="filterText"
-          type="button"
-          class="absolute right-2 top-1/2 -translate-y-1/2
-                w-5 h-5
-                grid place-items-center
-                rounded-full
-                bg-gray-200 text-gray-500
-                hover:bg-gray-300 hover:text-gray-700
-                active:scale-90
-                transition-all duration-150"
-          @click="filterText = ''"
-        >
-          <span class="i-mdi:window-close text-sm"></span>
-        </button>
-      </div>
-    </GroupPanel>
+    <TextFilter v-model="filterText" />
 
-    <GroupPanel class="flex-1 overflow-y-auto">
-      <div class="pa-2">
-        <div v-if="displayedFolders.length === 0" class="py-1 px-2">
-          {{ folderTree.length === 0 ? 'Loading...' : 'No matching folders' }}
-        </div>
-        <button
-          v-for="folder in displayedFolders"
-          :key="folder.id"
-          type="button"
-          class="w-full text-left py-1 rounded hover:bg-[var(--joplin-background-hover)]"
-          :style="{ paddingLeft: `${folder.depth * 16 + 8}px` }"
-          @click="openSelectedFolder(folder.id)"
-        >
-          {{ folder.icon ?? '' }} {{ folder.title }}
-        </button>
-      </div>
-    </GroupPanel>
+    <FolderList
+      class="flex-1 overflow-y-auto"
+      :displayedFolders="displayedFolders" :folderTree="folderTree"
+    />
   </div>
 </template>
 
