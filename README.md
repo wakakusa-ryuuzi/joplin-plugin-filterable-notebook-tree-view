@@ -40,11 +40,24 @@ Folders containing that text are shown, along with their parent path up to the r
 
 Selecting a folder in the panel moves Joplin to that folder.
 
+## Filter Options
+
+The following options are available as checkboxes:
+
+- Match exact text only
+- Enable regular expressions
+- Exclude child notebooks of matched notebooks
+
+## Reload Display Tree
+
+Click the button next to the option checkboxes to reload the tree.
+
 # TODO
 
 The following items are planned features or known bugs:
 
-- [ ] You currently need to restart Joplin to show newly created notebooks
+- [x] You currently need to restart Joplin to show newly created notebooks
+  - Since the plugin framework cannot receive notebook change notifications, a reload button was added as a workaround
 - [ ] Display order may not match Joplin in some cases
 - [ ] Parent folders may not appear in some cases
 

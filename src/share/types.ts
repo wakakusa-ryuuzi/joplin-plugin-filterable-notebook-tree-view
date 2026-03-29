@@ -21,3 +21,7 @@ export interface TreeFolder {
   parent_id?: string;
   children: TreeFolder[];
 }
+
+
+
+export type FlatFolder = { id: string; title: string; depth: number; icon?: string };

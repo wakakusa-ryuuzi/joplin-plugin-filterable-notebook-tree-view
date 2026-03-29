@@ -43,7 +43,7 @@ export class FolderManager {
   }
 
   /**
-   * Get all folders from Joplin
+   * コマンド用　Get all folders from Joplin
    */
   static async getAllFolders(): Promise<Folder[]> {
     Logger.info('Getting all folders...');
@@ -54,7 +54,7 @@ export class FolderManager {
       let hasMore = true;
 
       while (hasMore) {
-        const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], { fields: ['id', 'title', 'parent_id', 'icon'], page } );
+        const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], { fields: ['id', 'title', 'parent_id', 'icon'], page });
 
         if (response.items && response.items.length > 0) {
           allFolders.push(...response.items);
@@ -104,7 +104,7 @@ export class FolderManager {
   }
 
   /**
-   * Convert folder tree into TreeFolder with basic validation.
+   * コマンド用　Convert folder tree into TreeFolder with basic validation.
    */
   static toTreeFolderTree(folders: Folder[]): TreeFolder[] {
     const folderTree = this.buildFolderTree(folders);
@@ -120,6 +120,11 @@ export class FolderManager {
     return result;
   }
 
+  /**
+   * コマンド用
+   *
+   * @param id
+   */
   static async openFolderById(id: string): Promise<void> {
     Logger.info(`Attempting to open folder: ${id}`);
 
@@ -175,6 +180,7 @@ export class FolderManager {
 
   /**
    * Folder → TreeNode変換時用 Extracts the folder icon from the given icon string.
+   *
    * @param icon The icon string, which can be a JSON string representing a FolderIcon or a plain string.
    * @returns 取得できるemojiを直接（なければundefined）
    */

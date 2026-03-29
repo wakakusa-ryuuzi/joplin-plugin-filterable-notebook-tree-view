@@ -7,10 +7,10 @@ import { Logger } from '../share/logger';
 
 
 joplin.plugins.register({
-  onStart: async function() {
+  onStart: async function () {
     Logger.info('Plugin started');
 
-    if(process.env.NODE_ENV === 'development') {
+    if (process.env.NODE_ENV === 'development') {
       await FolderManager.logFolders();
     }
 
@@ -18,12 +18,12 @@ joplin.plugins.register({
     const panel = await PanelManager.createPanel();
     await PanelManager.initPanel(panel);
 
-    // パネルからのメッセージを処理
+    // パネルからのメッセージを登録
     joplin.views.panels.onMessage(panel, async (message) => {
       Logger.info('Received message from panel:', JSON.stringify(message));
 
       // HACK: messageが増えたらswitch文ごと別にする？
-      switch(message.type) {
+      switch (message.type) {
         case RequestMessageType.GetFolders:
           const folders = await FolderManager.getAllFolders();
           const folderTree = FolderManager.toTreeFolderTree(folders);
