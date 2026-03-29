@@ -1,18 +1,42 @@
 <script setup lang="ts">
 // vue
-import { ref } from 'vue';
+import { computed } from 'vue';
 
 // project
 import GroupPanel from '../../base/GroupPanel.vue';
 
+//component
+import { FolderFilterOptions } from './filterType';
+
+
 
 const emit = defineEmits<{
-  (e: 'reload'): void
+  (e: 'reload'): void;
 }>();
 
-const exactMatchChecked = ref(false);
-const regexpChecked = ref(false);
-const noChildrenChecked = ref(false);
+const options = defineModel<FolderFilterOptions>('options', { required: true });
+
+function updateOption(key: keyof FolderFilterOptions, value: boolean): void {
+  options.value = {
+    ...options.value,
+    [key]: value,
+  };
+}
+
+const exactMatchChecked = computed({
+  get: () => options.value.exactMatch,
+  set: (value: boolean) => updateOption('exactMatch', value),
+});
+
+const regexpChecked = computed({
+  get: () => options.value.regexp,
+  set: (value: boolean) => updateOption('regexp', value),
+});
+
+const noChildrenChecked = computed({
+  get: () => options.value.noChildren,
+  set: (value: boolean) => updateOption('noChildren', value),
+});
 </script>
 
 <template>

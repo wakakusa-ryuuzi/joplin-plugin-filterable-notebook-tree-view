@@ -1,26 +1,44 @@
 <script setup lang="ts">
 // vue
 import { onMounted, ref, shallowRef, watch } from 'vue';
-import { refDebounced } from '@vueuse/core'
+import { refDebounced } from '@vueuse/core';
 
 // project
 import { Logger } from '../../share/logger';
-import { NotifyMessageType, RequestMessageType, TreeFolder, FlatFolder } from '../../share/types';
+import {
+  FlatFolder,
+  NotifyMessageType,
+  RequestMessageType,
+  TreeFolder,
+} from '../../share/types';
+import { useFilterFolder } from '../composables/useFilterFolder';
 
+import { createFolderFilterOptions, FolderFilterOptions } from '../components/part/filterSetting';
 import TextFilter from '../components/part/textFilter/TextFilter.vue';
 import FilterSetting from '../components/part/filterSetting/FilterSetting.vue';
 import FolderList from '../components/part/folderList/FolderList.vue';
 import FolderLoading from '../components/part/folderLoading/FolderLoading.vue';
 
 
+// === filter option ===
+
+const filterOptions = ref<FolderFilterOptions>(createFolderFilterOptions());
+
+watch(filterOptions, () => {
+  updateDisplayedFolders();
+}, { deep: true });
+
+function handleReload(): void {
+  updateDisplayedFolders();
+}
+
 // === text filter ===
 
 const filterText = shallowRef('');
 const debouncedFilterText = refDebounced(filterText, 500);
 
-watch(debouncedFilterText, (nextValue) => {
-  Logger.debug(`Applying filter: "${nextValue}"`);
-  filterAndDisplayFolders(nextValue);
+watch(debouncedFilterText, () => {
+  updateDisplayedFolders();
 });
 
 
@@ -28,6 +46,10 @@ watch(debouncedFilterText, (nextValue) => {
 
 const folderTree = ref<TreeFolder[]>([]);
 const displayedFolders = ref<FlatFolder[]>([]);
+
+const { filterAndFlattenFolders } = useFilterFolder();
+
+
 
 onMounted(() => {
   Logger.debug('Vue component mounted');
@@ -38,11 +60,13 @@ onMounted(() => {
   }
 
   Logger.debug('Sending folder list request');
-  window.webviewApi.postMessage({ type: RequestMessageType.GetFolders }).then(() => {
+  try {
+    window.webviewApi.postMessage({ type: RequestMessageType.GetFolders });
     Logger.debug('Folder list request sent successfully');
-  }).catch(err => {
-    Logger.error(`${err.message}`);
-  });
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    Logger.error(message);
+  }
 
   // プラグインからのメッセージを受信
   window.webviewApi.onMessage((message) => {
@@ -52,8 +76,7 @@ onMounted(() => {
     if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
         folderTree.value = messagePayload.folders || [];
         Logger.debug(`Number of root folders: ${folderTree.value.length}`);
-        // FIXME: これ要る？
-        filterAndDisplayFolders(debouncedFilterText.value);
+        updateDisplayedFolders();
       }
   });
 
@@ -61,58 +84,30 @@ onMounted(() => {
 });
 
 
+function updateDisplayedFolders(): void {
+  Logger.debug(
+    `Applying filter: "${debouncedFilterText.value}"`,
+    filterOptions.value,
+  );
 
-function filterAndDisplayFolders(filterText: string) {
-  const normalized = (filterText || '').trim().toLowerCase();
-
-  if (!normalized) {
-    displayedFolders.value = flattenTree(folderTree.value);
-    Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
-    return;
-  }
-
-  const filteredTree = filterTreeByTitle(folderTree.value, normalized);
-  displayedFolders.value = flattenTree(filteredTree);
+  displayedFolders.value = filterAndFlattenFolders(
+    folderTree.value,
+    debouncedFilterText.value,
+    filterOptions.value,
+  );
   Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
-};
-
-
-
-function filterTreeByTitle(nodes: TreeFolder[], filterText: string): TreeFolder[] {
-  const matches: TreeFolder[] = [];
-  for (const node of nodes) {
-    const titleMatches = node.title.toLowerCase().includes(filterText);
-    if (titleMatches) {
-      matches.push(node);
-      continue;
-    }
-
-    if (node.children && node.children.length > 0) {
-      const childMatches = filterTreeByTitle(node.children, filterText);
-      if (childMatches.length > 0) {
-        matches.push(...childMatches);
-      }
-    }
-  }
-
-  return matches;
 }
 
-function flattenTree(nodes: TreeFolder[], depth = 0, out: FlatFolder[] = []): FlatFolder[] {
-  for (const node of nodes) {
-    out.push({ id: node.id, title: node.title, depth, icon: node.icon });
-    if (node.children && node.children.length > 0) {
-      flattenTree(node.children, depth + 1, out);
-    }
-  }
-  return out;
-}
+
 
 </script>
 
 <template>
   <div class="h-screen w-screen overflow-y-hidden pa-2 flex flex-col gap-1">
-    <!-- <FilterSetting /> -->
+    <FilterSetting
+      v-model:options="filterOptions"
+      @reload="handleReload"
+    />
 
     <TextFilter v-model="filterText" />
 
