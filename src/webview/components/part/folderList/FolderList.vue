@@ -4,7 +4,8 @@ import { ref } from 'vue';
 
 // project
 import { Logger } from '../../../../share/logger';
-import { RequestMessageType, FlatFolder } from '../../../../share/types';
+import { FlatFolder } from '../../../../share/types';
+import { useFolderMessaging } from '../../../composables/useFolderMessaging';
 
 import GroupPanel from '../../base/GroupPanel.vue';
 
@@ -13,15 +14,13 @@ const props = defineProps<{
 }>();
 
 const selectedFolderId = ref('');
+const { selectFolder } = useFolderMessaging();
 
 function openSelectedFolder(folderId: string) {
   const targetId = folderId || selectedFolderId.value;
   if (targetId) {
     Logger.debug(`Folder selected: ${targetId}`);
-    window.webviewApi.postMessage({
-      type: RequestMessageType.SelectFolder,
-      folderId: targetId,
-    });
+    selectFolder(targetId);
   } else {
     Logger.error('Error: No folder selected');
   }

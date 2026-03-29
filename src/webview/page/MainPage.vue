@@ -7,11 +7,10 @@ import { refDebounced } from '@vueuse/core';
 import { Logger } from '../../share/logger';
 import {
   FlatFolder,
-  NotifyMessageType,
-  RequestMessageType,
   TreeFolder,
 } from '../../share/types';
 import { useFilterFolder } from '../composables/useFilterFolder';
+import { useFolderMessaging } from '../composables/useFolderMessaging';
 
 import { createFolderFilterOptions, FolderFilterOptions } from '../components/part/filterSetting';
 import TextFilter from '../components/part/textFilter/TextFilter.vue';
@@ -31,7 +30,9 @@ watch(filterOptions, () => {
 
 /** フィルタオプション更新時のハンドラ */
 function handleReload(): void {
-  updateDisplayedFolders();
+  Logger.debug(`Reload`);
+  requestFolderTree();
+  displayedFolders.value = [];
 }
 
 
@@ -40,7 +41,7 @@ function handleReload(): void {
 /** フィルタ（検索）対象文字列 */
 const filterText = shallowRef('');
 
-/** デバウンス用、こっちを見る */
+/** デバウンス用、こっちを監視 */
 const debouncedFilterText = refDebounced(filterText, 500);
 
 watch(debouncedFilterText, () => {
@@ -57,37 +58,21 @@ const folderTree = ref<TreeFolder[]>([]);
 const displayedFolders = ref<FlatFolder[]>([]);
 
 const { filterAndFlattenFolders } = useFilterFolder();
+const { registerFolderListListener, requestFolderTree } = useFolderMessaging();
 
 
 
 onMounted(() => {
   Logger.debug('Vue component mounted');
 
-  if (!window.webviewApi) {
-    Logger.error('not find webviewApi');
-    return;
-  }
-
-  Logger.debug('Sending folder list request');
-  try {
-    window.webviewApi.postMessage({ type: RequestMessageType.GetFolders });
-    Logger.debug('Folder list request sent successfully');
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    Logger.error(message);
-  }
-
-  // プラグインからのメッセージを受信
-  window.webviewApi.onMessage((message) => {
-    const messagePayload = message.message || message;
-    Logger.debug(`Message received: ${messagePayload.type}`);
-
-    if (messagePayload.type === NotifyMessageType.UpdateFolderList) {
-        folderTree.value = messagePayload.folders || [];
-        Logger.debug(`Number of root folders: ${folderTree.value.length}`);
-        updateDisplayedFolders();
-      }
+  registerFolderListListener((folders) => {
+    Logger.debug(`Received message`);
+    folderTree.value = folders;
+    Logger.debug(`Number of root folders: ${folderTree.value.length}`);
+    updateDisplayedFolders();
   });
+
+  requestFolderTree();
 
   Logger.debug('Vue initialization complete');
 });
