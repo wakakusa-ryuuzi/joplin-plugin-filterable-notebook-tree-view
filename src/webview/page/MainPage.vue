@@ -22,19 +22,25 @@ import FolderLoading from '../components/part/folderLoading/FolderLoading.vue';
 
 // === filter option ===
 
+/** フィルタオプション */
 const filterOptions = ref<FolderFilterOptions>(createFolderFilterOptions());
 
 watch(filterOptions, () => {
   updateDisplayedFolders();
 }, { deep: true });
 
+/** フィルタオプション更新時のハンドラ */
 function handleReload(): void {
   updateDisplayedFolders();
 }
 
+
 // === text filter ===
 
+/** フィルタ（検索）対象文字列 */
 const filterText = shallowRef('');
+
+/** デバウンス用、こっちを見る */
 const debouncedFilterText = refDebounced(filterText, 500);
 
 watch(debouncedFilterText, () => {
@@ -44,7 +50,10 @@ watch(debouncedFilterText, () => {
 
 // === folder ===
 
+/** フォルダツリー（pluginから取得） */
 const folderTree = ref<TreeFolder[]>([]);
+
+/** flatten、フィルタ適用後の表示用リスト */
 const displayedFolders = ref<FlatFolder[]>([]);
 
 const { filterAndFlattenFolders } = useFilterFolder();
@@ -97,9 +106,6 @@ function updateDisplayedFolders(): void {
   );
   Logger.debug(`Number of displayed folders: ${displayedFolders.value.length}`);
 }
-
-
-
 </script>
 
 <template>
