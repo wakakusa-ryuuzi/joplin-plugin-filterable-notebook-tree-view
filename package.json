@@ -1,6 +1,6 @@
 {
   "name": "joplin-plugin-filterable-notebook-tree-view",
-  "version": "1.0.3",
+  "version": "1.1.0",
   "scripts": {
     "dev": "concurrently -k \"npm:dev:plugin\" \"npm:dev:webview\"",
     "dev:webview": "vite",
