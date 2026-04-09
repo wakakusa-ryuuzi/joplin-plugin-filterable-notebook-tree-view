@@ -1,38 +1,30 @@
 import joplin from '../../api';
 
-import { FolderManager } from './folder_manager/folderManager';
-import { PanelManager } from './panel_manager/panelManager';
-import { NotifyMessageType, RequestMessageType } from '../share/types';
+import { FolderRepository } from './folder/folderRepository';
+import { PanelBridge } from './panel/panelBridge';
+import { handlePanelCommand } from './command/panelCommandRouter';
 import { Logger } from '../share/logger';
+
+declare const process: { env?: { NODE_ENV?: string } };
 
 
 joplin.plugins.register({
   onStart: async function () {
     Logger.info('Plugin started');
 
-    if (process.env.NODE_ENV === 'development') {
-      await FolderManager.logFolders();
+    if (process.env?.NODE_ENV === 'development') {
+      await FolderRepository.logFolders();
     }
 
     // パネルの作成と初期化
-    const panel = await PanelManager.createPanel();
-    await PanelManager.initPanel(panel);
+    const panel = await PanelBridge.createPanel();
+    await PanelBridge.initPanel(panel);
 
     // パネルからのメッセージを登録
-    joplin.views.panels.onMessage(panel, async (message) => {
+    PanelBridge.onMessage(panel, async (message: unknown) => {
       Logger.info('Received message from panel:', JSON.stringify(message));
 
-      // HACK: messageが増えたらswitch文ごと別にする？
-      switch (message.type) {
-        case RequestMessageType.GetFolders:
-          const folders = await FolderManager.getAllFolders();
-          const folderTree = FolderManager.toTreeFolderTree(folders);
-          await joplin.views.panels.postMessage(panel, { type: NotifyMessageType.UpdateFolderList, folders: folderTree });
-          break;
-        case RequestMessageType.SelectFolder:
-          await FolderManager.openFolderById(message.folderId);
-          break;
-      }
+      await handlePanelCommand(message, (payload) => PanelBridge.postMessage(panel, payload));
     });
   },
 });
