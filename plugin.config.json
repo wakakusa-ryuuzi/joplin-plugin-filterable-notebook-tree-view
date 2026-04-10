@@ -1,5 +1,5 @@
 {
   "extraScripts": [
-    "plugin/panel_manager/dev-webview.ts"
+    "plugin/panel/dev-webview.ts"
   ]
 }

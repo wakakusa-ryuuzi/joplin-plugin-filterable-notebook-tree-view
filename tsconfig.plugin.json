@@ -1,21 +1,29 @@
 {
   "compilerOptions": {
     "composite": true,
-
     "module": "commonjs",
     "target": "es2015",
     "allowJs": true,
     "esModuleInterop": true,
-
     "baseUrl": ".",
     "paths": {
-      "api": ["api"]
+      "@api": [
+        "api"
+      ],
+      "@share/*": [
+        "src/share/*"
+      ],
+      "@plugin/*": [
+        "src/plugin/*"
+      ],
     },
     "outDir": "./dist/",
   },
   "include": [
-    "src/plugin/**/*.ts", "src/plugin/**/*.d.ts",
+    "src/plugin/**/*.ts",
+    "src/plugin/**/*.d.ts",
     "src/share/**/*.ts",
-    "api/**/*.d.ts" , "api/**/*.ts"
+    "api/**/*.d.ts",
+    "api/**/*.ts"
   ]
 }

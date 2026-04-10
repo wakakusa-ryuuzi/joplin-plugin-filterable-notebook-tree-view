@@ -10,6 +10,9 @@
     "baseUrl": "src/webview",
     "outDir": "./dist-webview/",
     "paths": {
+      "@share/*": [
+        "../share/*"
+      ],
       "@components/*": [
         "components/*"
       ]

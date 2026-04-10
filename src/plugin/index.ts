@@ -1,9 +1,10 @@
 import joplin from '../../api';
 
-import { FolderRepository } from './folder/folderRepository';
+import { Logger } from '../share/logger';
+
+import { LogFoldersUseCase } from './useCase/logFoldersUseCase';
 import { PanelBridge } from './panel/panelBridge';
 import { handlePanelCommand } from './command/panelCommandRouter';
-import { Logger } from '../share/logger';
 
 declare const process: { env?: { NODE_ENV?: string } };
 
@@ -13,7 +14,7 @@ joplin.plugins.register({
     Logger.info('Plugin started');
 
     if (process.env?.NODE_ENV === 'development') {
-      await FolderRepository.logFolders();
+      await new LogFoldersUseCase().execute();
     }
 
     // パネルの作成と初期化

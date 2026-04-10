@@ -1,6 +1,8 @@
 import { NotifyMessageType, RequestMessageType } from '../../share/types';
 import { Logger } from '../../share/logger';
-import { FolderPanelUseCase } from '../usecase/folderPanelUseCase';
+
+import { GetTreeFoldersUseCase } from '../useCase/getTreeFoldersUseCase';
+import { SelectFolderByIdUseCase } from '../useCase/selectFolderByIdUseCase';
 
 // TODO: ユースケース分離したのでcommandフォルダ切る意味あるか検討　panel以外のコマンド有りうる？
 
@@ -53,7 +55,7 @@ export async function handlePanelCommand(rawMessage: unknown, postMessage: PostM
 
   switch (message.type) {
     case RequestMessageType.GetFolders: {
-      const folderTree = await FolderPanelUseCase.getTreeFolders();
+      const folderTree = await new GetTreeFoldersUseCase().execute();
       await postMessage({ type: NotifyMessageType.UpdateFolderList, folders: folderTree });
       return;
     }
@@ -62,7 +64,7 @@ export async function handlePanelCommand(rawMessage: unknown, postMessage: PostM
         Logger.warn('SelectFolder command missing folderId', message);
         return;
       }
-      await FolderPanelUseCase.selectFolderById(message.folderId);
+      await new SelectFolderByIdUseCase().execute(message.folderId);
       return;
     }
     default: {

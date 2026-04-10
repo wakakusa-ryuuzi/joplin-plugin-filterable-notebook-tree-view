@@ -1,6 +1,8 @@
 import { Folder, FolderIcon } from '../joplin';
-import { TreeFolder } from '../../share/types';
+
+import { FolderSortOrder, FolderSortOrderField, TreeFolder } from '../../share/types';
 import { Logger } from '../../share/logger';
+
 
 // TODO: 元から木構造で取れたかもしれない…
 
@@ -10,8 +12,8 @@ import { Logger } from '../../share/logger';
  * @param folders フラットなフォルダ配列（joplinから取れる型）
  * @returns Tree化したフォルダ
  */
-export function toTreeFolderTree(folders: Folder[]): TreeFolder[] {
-  const folderTree = buildFolderTree(folders);
+export function toTreeFolderTree(folders: Folder[], sortOrder?: FolderSortOrder): TreeFolder[] {
+  const folderTree = buildFolderTree(folders, sortOrder);
   const result: TreeFolder[] = [];
 
   for (const node of folderTree) {
@@ -30,7 +32,7 @@ export function toTreeFolderTree(folders: Folder[]): TreeFolder[] {
  * @param folders フラットなフォルダ配列（joplinから取れる型）
  * @returns ツリー構造のフォルダ配列
  */
-function buildFolderTree(folders: Folder[]): Folder[] {
+function buildFolderTree(folders: Folder[], sortOrder?: FolderSortOrder): Folder[] {
   const nodesById = new Map<string, Folder>();
   const roots: Folder[] = [];
 
@@ -52,7 +54,60 @@ function buildFolderTree(folders: Folder[]): Folder[] {
     }
   }
 
+  sortFoldersByOrder(roots, sortOrder);
+  for (const root of roots) {
+    sortChildrenRecursively(root, sortOrder);
+  }
+
   return roots;
+}
+
+function sortChildrenRecursively(node: Folder, sortOrder?: FolderSortOrder): void {
+  if (!node.children || node.children.length === 0) {
+    return;
+  }
+
+  sortFoldersByOrder(node.children, sortOrder);
+
+  for (const child of node.children) {
+    sortChildrenRecursively(child, sortOrder);
+  }
+}
+
+function sortFoldersByOrder(folders: Folder[], sortOrder?: FolderSortOrder): void {
+  folders.sort((a, b) => compareFolders(a, b, sortOrder));
+}
+
+function compareFolders(a: Folder, b: Folder, sortOrder?: FolderSortOrder): number {
+  const order = sortOrder ?? {
+    field: FolderSortOrderField.Title,
+    reverse: false,
+  };
+
+  let result = 0;
+
+  if (order.field === FolderSortOrderField.CreatedTime) {
+    result = compareNumber(a.created_time, b.created_time);
+  } else if (order.field === FolderSortOrderField.UpdatedTime) {
+    result = compareNumber(a.updated_time, b.updated_time);
+  } else {
+    result = (a.title ?? '').localeCompare(b.title ?? '', undefined, {
+      numeric: true,
+      sensitivity: 'base',
+    });
+  }
+
+  if (result === 0) {
+    result = (a.id ?? '').localeCompare(b.id ?? '');
+  }
+
+  return order.reverse ? -result : result;
+}
+
+function compareNumber(a?: number, b?: number): number {
+  const left = typeof a === 'number' ? a : 0;
+  const right = typeof b === 'number' ? b : 0;
+  return left - right;
 }
 
 /**
