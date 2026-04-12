@@ -7,13 +7,19 @@ import { Logger } from '../../share/logger';
 // TODO: 元から木構造で取れたかもしれない…
 
 /**
- * Folder配列を、再帰的に探索し、TreeFolder型に変換
+ * Folder配列を、再帰的に探索し、UIに合わせた表示順のTreeFolder型に変換
  *
  * @param folders フラットなフォルダ配列（joplinから取れる型）
+ * @param sortOrder フォルダのソート順
+ * @param lastNoteUpdatedByFolderId フォルダIDごとの最終ノート更新時間（sortOrder.fieldがLastNoteUserUpdatedTimeのときに必要）
  * @returns Tree化したフォルダ
  */
-export function toTreeFolderTree(folders: Folder[], sortOrder?: FolderSortOrder): TreeFolder[] {
-  const folderTree = buildFolderTree(folders, sortOrder);
+export function toTreeFolderTree(
+  folders: Folder[],
+  sortOrder?: FolderSortOrder,
+  lastNoteUpdatedByFolderId?: Record<string, number>,
+): TreeFolder[] {
+  const folderTree = buildFolderTree(folders, sortOrder, lastNoteUpdatedByFolderId);
   const result: TreeFolder[] = [];
 
   for (const node of folderTree) {
@@ -23,6 +29,12 @@ export function toTreeFolderTree(folders: Folder[], sortOrder?: FolderSortOrder)
     }
   }
 
+  Logger.info('sorted folders preview', result.slice(0, 10).map((folder) => ({
+    id: folder.id,
+    title: folder.title,
+    childCount: folder.children.length,
+  })));
+
   return result;
 }
 
@@ -30,9 +42,15 @@ export function toTreeFolderTree(folders: Folder[], sortOrder?: FolderSortOrder)
  * フラットなフォルダ配列を、ツリー構造に変換する（構造変換）
  *
  * @param folders フラットなフォルダ配列（joplinから取れる型）
+ * @param sortOrder フォルダのソート順
+ * @param lastNoteUpdatedByFolderId フォルダIDごとの最終ノート更新時間（sortOrder.fieldがLastNoteUserUpdatedTimeのときに必要）
  * @returns ツリー構造のフォルダ配列
  */
-function buildFolderTree(folders: Folder[], sortOrder?: FolderSortOrder): Folder[] {
+function buildFolderTree(
+  folders: Folder[],
+  sortOrder?: FolderSortOrder,
+  lastNoteUpdatedByFolderId?: Record<string, number>,
+): Folder[] {
   const nodesById = new Map<string, Folder>();
   const roots: Folder[] = [];
 
@@ -54,31 +72,49 @@ function buildFolderTree(folders: Folder[], sortOrder?: FolderSortOrder): Folder
     }
   }
 
-  sortFoldersByOrder(roots, sortOrder);
+  const effectiveLastUpdatedByFolderId =
+    sortOrder?.field === FolderSortOrderField.LastNoteUserUpdatedTime
+      ? buildEffectiveLastUpdatedMap(roots, lastNoteUpdatedByFolderId)
+      : undefined;
+
+  sortFoldersByOrder(roots, sortOrder, effectiveLastUpdatedByFolderId);
   for (const root of roots) {
-    sortChildrenRecursively(root, sortOrder);
+    sortChildrenRecursively(root, sortOrder, effectiveLastUpdatedByFolderId);
   }
 
   return roots;
 }
 
-function sortChildrenRecursively(node: Folder, sortOrder?: FolderSortOrder): void {
+function sortChildrenRecursively(
+  node: Folder,
+  sortOrder?: FolderSortOrder,
+  effectiveLastUpdatedByFolderId?: Record<string, number>,
+): void {
   if (!node.children || node.children.length === 0) {
     return;
   }
 
-  sortFoldersByOrder(node.children, sortOrder);
+  sortFoldersByOrder(node.children, sortOrder, effectiveLastUpdatedByFolderId);
 
   for (const child of node.children) {
-    sortChildrenRecursively(child, sortOrder);
+    sortChildrenRecursively(child, sortOrder, effectiveLastUpdatedByFolderId);
   }
 }
 
-function sortFoldersByOrder(folders: Folder[], sortOrder?: FolderSortOrder): void {
-  folders.sort((a, b) => compareFolders(a, b, sortOrder));
+function sortFoldersByOrder(
+  folders: Folder[],
+  sortOrder?: FolderSortOrder,
+  effectiveLastUpdatedByFolderId?: Record<string, number>,
+): void {
+  folders.sort((a, b) => compareFolders(a, b, sortOrder, effectiveLastUpdatedByFolderId));
 }
 
-function compareFolders(a: Folder, b: Folder, sortOrder?: FolderSortOrder): number {
+function compareFolders(
+  a: Folder,
+  b: Folder,
+  sortOrder?: FolderSortOrder,
+  effectiveLastUpdatedByFolderId?: Record<string, number>,
+): number {
   const order = sortOrder ?? {
     field: FolderSortOrderField.Title,
     reverse: false,
@@ -88,6 +124,10 @@ function compareFolders(a: Folder, b: Folder, sortOrder?: FolderSortOrder): numb
 
   if (order.field === FolderSortOrderField.CreatedTime) {
     result = compareNumber(a.created_time, b.created_time);
+  } else if (order.field === FolderSortOrderField.LastNoteUserUpdatedTime) {
+    const left = effectiveLastUpdatedByFolderId?.[a.id] ?? a.user_updated_time ?? a.updated_time;
+    const right = effectiveLastUpdatedByFolderId?.[b.id] ?? b.user_updated_time ?? b.updated_time;
+    result = compareNumber(left, right);
   } else if (order.field === FolderSortOrderField.UpdatedTime) {
     result = compareNumber(a.updated_time, b.updated_time);
   } else {
@@ -108,6 +148,34 @@ function compareNumber(a?: number, b?: number): number {
   const left = typeof a === 'number' ? a : 0;
   const right = typeof b === 'number' ? b : 0;
   return left - right;
+}
+
+function buildEffectiveLastUpdatedMap(
+  roots: Folder[],
+  lastNoteUpdatedByFolderId?: Record<string, number>,
+): Record<string, number> {
+  const map: Record<string, number> = {};
+
+  const visit = (node: Folder): number => {
+    const selfTime = lastNoteUpdatedByFolderId?.[node.id] ?? node.user_updated_time ?? node.updated_time ?? 0;
+    let effectiveTime = selfTime;
+
+    for (const child of node.children ?? []) {
+      const childEffective = visit(child);
+      if (childEffective > effectiveTime) {
+        effectiveTime = childEffective;
+      }
+    }
+
+    map[node.id] = effectiveTime;
+    return effectiveTime;
+  };
+
+  for (const root of roots) {
+    visit(root);
+  }
+
+  return map;
 }
 
 /**

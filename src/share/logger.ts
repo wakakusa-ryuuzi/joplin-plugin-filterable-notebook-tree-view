@@ -23,3 +23,5 @@ export class Logger {
     console.error(`[${timestamp}][${this.prefix}] ERROR: ${message}`, ...args);
   }
 }
+
+// TODO: 呼ばれた場所をコールスタックマイナス1出来るか

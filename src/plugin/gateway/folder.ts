@@ -6,6 +6,12 @@ import { FolderSortOrder, FolderSortOrderField } from '../../share/types';
 import { Logger } from '../../share/logger';
 
 
+interface NoteMeta {
+  parent_id: string;
+  user_updated_time?: number;
+}
+
+
 
 // TODO: コレ移動できるかも
 /** ソート情報のエラー時用デフォルト値 */
@@ -18,7 +24,8 @@ function normalizeFolderSortOrder(fieldRaw: unknown, reverseRaw: unknown): Folde
   const isKnownField =
     fieldRaw === FolderSortOrderField.Title ||
     fieldRaw === FolderSortOrderField.CreatedTime ||
-    fieldRaw === FolderSortOrderField.UpdatedTime;
+    fieldRaw === FolderSortOrderField.UpdatedTime ||
+    fieldRaw === FolderSortOrderField.LastNoteUserUpdatedTime;
 
   if (!isKnownField) {
     Logger.warn('Unknown folder sort order field. Fallback to title.', { fieldRaw });
@@ -73,7 +80,7 @@ export async function getAllFolders(): Promise<Folder[]> {
 
     while (hasMore) {
       const response: PaginatedResponse<Folder> = await joplin.data.get(['folders'], {
-        fields: ['id', 'title', 'parent_id', 'icon', 'created_time', 'updated_time'],
+        fields: ['id', 'title', 'parent_id', 'icon', 'created_time', 'updated_time', 'user_updated_time'],
         page,
       });
 
@@ -86,13 +93,62 @@ export async function getAllFolders(): Promise<Folder[]> {
     }
 
     Logger.info(`Found ${allFolders.length} folders`);
-    Logger.info(`folders:  ${JSON.stringify(allFolders)}`);
+    Logger.info('folders preview', allFolders.slice(0, 10).map((folder) => ({
+      id: folder.id,
+      title: folder.title,
+      parent_id: folder.parent_id,
+    })));
 
     return allFolders;
 
   } catch (error) {
     Logger.error('Failed to get folders', error);
     return [];
+  }
+}
+
+/**
+ * 各フォルダに紐づくノートの最終更新時刻（user_updated_timeの最大値）を取得
+ *
+ * @returns key: folderId, value: max user_updated_time
+ */
+export async function getLastNoteUpdatedTimeByFolderId(): Promise<Record<string, number>> {
+  const latestByFolderId: Record<string, number> = {};
+  let page = 1;
+  let hasMore = true;
+
+  try {
+    while (hasMore) {
+      const response: PaginatedResponse<NoteMeta> = await joplin.data.get(['notes'], {
+        fields: ['parent_id', 'user_updated_time'],
+        page,
+      });
+
+      for (const note of response.items ?? []) {
+        if (!note.parent_id) {
+          continue;
+        }
+
+        const timestamp = typeof note.user_updated_time === 'number' ? note.user_updated_time : 0;
+        const current = latestByFolderId[note.parent_id] ?? 0;
+
+        if (timestamp > current) {
+          latestByFolderId[note.parent_id] = timestamp;
+        }
+      }
+
+      hasMore = response.has_more;
+      page += 1;
+    }
+
+    Logger.info('Loaded note last-updated map', {
+      folderCount: Object.keys(latestByFolderId).length,
+    });
+
+    return latestByFolderId;
+  } catch (error) {
+    Logger.warn('Failed to load note last-updated map. Fallback to folder timestamp.', { error });
+    return {};
   }
 }
 
